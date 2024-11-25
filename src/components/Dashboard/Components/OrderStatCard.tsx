@@ -1,0 +1,30 @@
+import React from "react";
+import { IconType } from "react-icons";
+
+interface orderStatCardProps {
+  icon: IconType;
+  iconColor: string;
+  title: string;
+  value: string | number | undefined;
+}
+
+const OrderStatCard: React.FC<orderStatCardProps> = ({
+  icon: Icon,
+  iconColor,
+  title,
+  value,
+}) => {
+  return (
+    <div className={`bg-white p-4 rounded-lg shadow`}>
+      <div className="flex items-center gap-3">
+        <Icon className={`text-2xl mr-2 ${iconColor}`} />
+        <div>
+          <p className="text-sm">{title}</p>
+          <p className="text-xl font-bold">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrderStatCard;

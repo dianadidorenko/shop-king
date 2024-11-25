@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.banner .slick-dots {
+  bottom: 10px !important;
+}
+.banner .slick-next {
+  right: 15px !important;
+}
+.banner .slick-prev {
+  left: 15px !important;
+  z-index: 1.banner 00;
+}
+
+.scroll {
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+  scrollbar-color: #f23e14 white;
+}

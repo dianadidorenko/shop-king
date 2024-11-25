@@ -1,0 +1,204 @@
+import React, { useState } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { LucideEdit, LucideTrash, LucidePlus, LucideX } from "lucide-react";
+import Link from "next/link";
+
+interface Video {
+  provider: string;
+  link: string;
+}
+
+const ProductVideo: React.FC = () => {
+  const [videos, setVideos] = useState<Video[]>([
+    { provider: "Youtube", link: "https://youtu.be/example" },
+  ]);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
+
+  const formik = useFormik({
+    initialValues: {
+      provider: "",
+      link: "",
+    },
+    validationSchema: Yup.object({
+      provider: Yup.string().required("Video provider is required"),
+      link: Yup.string()
+        .url("Must be a valid URL")
+        .required("Link is required"),
+    }),
+    onSubmit: (values) => {
+      if (editingVideo) {
+        setVideos((prev) =>
+          prev.map((video) =>
+            video.link === editingVideo.link ? { ...values } : video
+          )
+        );
+      } else {
+        setVideos([...videos, values]);
+      }
+      closePopup();
+    },
+  });
+
+  const openPopup = (video: Video | null = null) => {
+    setEditingVideo(video);
+    if (video) {
+      formik.setValues(video);
+    } else {
+      formik.resetForm();
+    }
+    setIsPopupOpen(true);
+  };
+
+  const closePopup = () => {
+    setEditingVideo(null);
+    setIsPopupOpen(false);
+  };
+
+  const deleteVideo = (link: string) => {
+    setVideos(videos.filter((video) => video.link !== link));
+  };
+
+  return (
+    <div>
+      <div className="bg-white rounded-lg shadow-md">
+        <div className="flex items-center justify-between mb-4 px-6 py-4 shadow">
+          <h1 className="text-2xl font-semibold">Video Manager</h1>
+          <button
+            className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+            onClick={() => openPopup(null)}
+          >
+            <LucidePlus className="inline-block mr-2" size={16} />
+            Add Video
+          </button>
+        </div>
+
+        <table className="w-full bg-white px-6 py-4">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b text-left">Video Provider</th>
+              <th className="py-2 px-4 border-b text-left">Link</th>
+              <th className="py-2 px-4 border-b">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {videos.map((video, index) => (
+              <tr key={index}>
+                <td className="py-2 px-4 border-b">{video.provider}</td>
+                <td className="py-2 px-4 border-b">
+                  <Link
+                    href={video.link}
+                    className="text-blue-500 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {video.link}
+                  </Link>
+                </td>
+                <td className="py-2 px-4 border-b flex justify-center">
+                  <button
+                    className="text-green-500 hover:text-green-700 mr-2"
+                    onClick={() => openPopup(video)}
+                  >
+                    <LucideEdit size={16} />
+                  </button>
+                  <button
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() => deleteVideo(video.link)}
+                  >
+                    <LucideTrash size={16} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {isPopupOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <h2 className="text-lg font-semibold text-gray-700">
+              {editingVideo ? "Edit Video" : "Add Video"}
+            </h2>
+            <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+              <div className="flex justify-between items-center mb-4">
+                <button
+                  className="text-gray-400 hover:text-gray-600"
+                  onClick={closePopup}
+                >
+                  <LucideX size={20} />
+                </button>
+              </div>
+              <form
+                onSubmit={formik.handleSubmit}
+                className="px-6 py-4 flex flex-col gap-4"
+              >
+                <div className="mb-4">
+                  <label
+                    htmlFor="provider"
+                    className="block text-gray-700 text-sm font-semibold mb-2"
+                  >
+                    Video Provider <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="provider"
+                    name="provider"
+                    value={formik.values.provider}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    className="block w-full border border-gray-300 rounded-md p-2"
+                  >
+                    <option value="">--</option>
+                    <option value="Youtube">Youtube</option>
+                    <option value="Vimeo">Vimeo</option>
+                  </select>
+                  {formik.touched.provider && formik.errors.provider && (
+                    <p className="text-red-500 text-sm">
+                      {formik.errors.provider}
+                    </p>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="link"
+                    className="block text-gray-700 text-sm font-semibold mb-2"
+                  >
+                    Link <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="link"
+                    name="link"
+                    value={formik.values.link}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    className="block w-full border border-gray-300 rounded-md p-2 h-24"
+                  ></textarea>
+                  {formik.touched.link && formik.errors.link && (
+                    <p className="text-red-500 text-sm">{formik.errors.link}</p>
+                  )}
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="flex items-center justify-center px-4 py-2 mr-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+                    onClick={closePopup}
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex items-center justify-center px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ProductVideo;
