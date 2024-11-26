@@ -13,8 +13,8 @@ const DashboardProducts = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   const fetchProducts = async () => {
-    const products = (await axiosInstance.get("/products")).data.data;
-    setProducts(products);
+    const products = await axiosInstance.get("/products");
+    setProducts(products.data.data);
   };
 
   useEffect(() => {

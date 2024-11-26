@@ -2,38 +2,82 @@ import React, { useRef } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import JoditEditor from "jodit-react";
+import { useParams } from "next/navigation";
 
-interface ProductSeoValues {
+import { axiosInstance } from "@/lib/axiosInstance";
+
+interface SEOFormValues {
   title: string;
   description: string;
-  metaKeyword: string;
+  metaKeywords: string;
   image: File | null;
 }
 
-const ProductSeo: React.FC = () => {
-  const editor = useRef(null);
+const ProductSeo: React.FC = ({ seo }) => {
+  console.log(seo);
 
-  const formik = useFormik<ProductSeoValues>({
+  const editor = useRef(null);
+  const params = useParams();
+
+  const formik = useFormik<SEOFormValues>({
     initialValues: {
-      title: "Snapback Hat",
-      description: "Step your game up with this mid-depth",
-      metaKeyword: "Hats",
-      image: null,
+      title: seo?.title || "",
+      description: seo?.description || "",
+      metaKeywords: seo?.metaKeywords || "",
+      image: seo?.image || null,
     },
+    enableReinitialize: true,
     validationSchema: Yup.object({
       title: Yup.string().required("Title is required"),
       description: Yup.string().required("Description is required"),
-      metaKeyword: Yup.string().required("Meta keyword cost is required"),
+      metaKeywords: Yup.string().required("Meta keyword is required"),
     }),
     onSubmit: (values) => {
       console.log("Form Values", values);
+      if (Array.isArray(params?.slug)) {
+        const productId = params.slug[1];
+        axiosInstance
+          .put(`/products/${productId}`, {
+            seo: values,
+          })
+          .then((data) => {
+            if (data?.data?.status) {
+              alert("Seo updated successfully");
+            } else {
+              console.error("Something went wrong");
+            }
+          })
+          .catch((error) => {
+            console.error("Error updating seo:", error);
+          });
+      } else {
+        console.error("Invalid slug format or slug is missing.");
+      }
     },
   });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.currentTarget.files) {
-      formik.setFieldValue("image", event.currentTarget.files[0]);
-    }
+    if (!event.currentTarget.files) return false;
+
+    const formData = new FormData();
+    formData.append("image", event.currentTarget.files[0]);
+
+    axiosInstance
+      .post("/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        if (response?.data) {
+          formik.setFieldValue("image", response.data.file_url);
+        }
+      })
+      .catch((error) => {
+        console.error("Error uploading the image", error);
+      });
+
+    formik.setFieldValue("image", event.currentTarget.files[0]);
   };
 
   return (
@@ -63,7 +107,7 @@ const ProductSeo: React.FC = () => {
           ) : null}
         </div>
 
-        {/* DESCRIPTION Field */}
+        {/* DESCRIPTION */}
         <div className="mb-4">
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
@@ -84,7 +128,7 @@ const ProductSeo: React.FC = () => {
           ) : null}
         </div>
 
-        {/* META KEYWORD Field */}
+        {/* META KEYWORD */}
         <div className="mb-4">
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
@@ -93,21 +137,21 @@ const ProductSeo: React.FC = () => {
             META KEYWORD *
           </label>
           <input
-            name="metaKeyword"
+            name="metaKeywords"
             type="text"
-            value={formik.values.metaKeyword}
+            value={formik.values.metaKeywords}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           />
-          {formik.touched.metaKeyword && formik.errors.metaKeyword ? (
+          {formik.touched.metaKeywords && formik.errors.metaKeywords ? (
             <p className="text-red-500 text-sm mt-1">
-              {formik.errors.metaKeyword}
+              {formik.errors.metaKeywords}
             </p>
           ) : null}
         </div>
 
-        {/* IMAGE Field */}
+        {/* IMAGE */}
         <div>
           <label className="block text-gray-700 text-sm font-bold mb-2">
             IMAGE
@@ -120,10 +164,10 @@ const ProductSeo: React.FC = () => {
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700"
             />
           </div>
-          {formik.values.image && (
+          {seo.image && (
             <div className="mt-4">
               <img
-                src={URL.createObjectURL(formik.values.image)}
+                src={seo.image}
                 alt="Preview"
                 className="w-24 h-24 object-cover"
               />

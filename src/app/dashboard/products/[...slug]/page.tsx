@@ -88,7 +88,7 @@ const DashboardProductDetailsPage: React.FC = () => {
     getProduct();
   }, []);
 
-  console.log(product);
+  // console.log(product);
 
   const productData = {
     name: product?.name,
@@ -182,17 +182,17 @@ const DashboardProductDetailsPage: React.FC = () => {
         )}
         {activeTab === "Videos" && (
           <div>
-            <ProductVideos />
+            <ProductVideos video={ product.videos} />
           </div>
         )}
         {activeTab === "Shipping & Return" && (
           <div>
-            <ProductShipping />
+            <ProductShipping shippingReturn={product.shippingReturn} />
           </div>
         )}
         {activeTab === "Seo" && (
           <div>
-            <ProductSeo />
+            <ProductSeo seo={product.seo} />
           </div>
         )}
       </div>

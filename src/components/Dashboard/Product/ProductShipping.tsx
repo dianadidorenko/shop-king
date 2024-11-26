@@ -13,18 +13,22 @@ interface ShippingFormValues {
   shippingAndReturnPolicy: string;
 }
 
-const ProductShipping: React.FC = () => {
+const ProductShipping: React.FC = ({ shippingReturn }) => {
   const params = useParams();
   const editor = useRef(null);
 
   const formik = useFormik<ShippingFormValues>({
     initialValues: {
-      shippingType: "Flat Rate",
-      isProductQuantityMultiply: "No",
-      shippingCost: "80.00",
+      shippingType: shippingReturn.shippingType || "Flat Rate",
+      isProductQuantityMultiply: shippingReturn.isProductQuantityMultiply
+        ? "Yes"
+        : "No",
+      shippingCost: shippingReturn.shippingCost.toString() || "",
       shippingAndReturnPolicy:
+        shippingReturn.shippingAndReturnPolicy ||
         "We offer extended returns throughoit the holidayes season",
     },
+    enableReinitialize: true,
     validationSchema: Yup.object({
       shippingType: Yup.string().required("Shipping type is required"),
       isProductQuantityMultiply: Yup.string().required(
@@ -49,7 +53,7 @@ const ProductShipping: React.FC = () => {
               ...values,
               isProductQuantityMultiply:
                 values?.isProductQuantityMultiply === "Yes" ? true : false,
-              shippingCost: parseFloat(values.shippingCost),
+              shippingCost: Number(values.shippingCost),
             },
           })
           .then((data) => {
@@ -88,6 +92,7 @@ const ProductShipping: React.FC = () => {
               id="free"
               name="shippingType"
               value="Free"
+              checked={formik.values.shippingType === "Free"}
               onChange={formik.handleChange}
               className="mr-2"
             />
@@ -101,6 +106,7 @@ const ProductShipping: React.FC = () => {
               id="flatRate"
               name="shippingType"
               value="Flat Rate"
+              checked={formik.values.shippingType === "Flat Rate"}
               onChange={formik.handleChange}
               className="mr-2"
             />
@@ -126,6 +132,7 @@ const ProductShipping: React.FC = () => {
               id="yes"
               name="isProductQuantityMultiply"
               value="Yes"
+              checked={formik.values.isProductQuantityMultiply === "Yes"}
               onChange={formik.handleChange}
               className="mr-2"
             />
@@ -139,6 +146,7 @@ const ProductShipping: React.FC = () => {
               id="no"
               name="isProductQuantityMultiply"
               value="No"
+              checked={formik.values.isProductQuantityMultiply === "No"}
               onChange={formik.handleChange}
               className="mr-2"
             />

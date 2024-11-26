@@ -1,26 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { LucideEdit, LucideTrash, LucidePlus, LucideX } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+
+import { axiosInstance } from "@/lib/axiosInstance";
 
 interface Video {
   provider: string;
   link: string;
+  _id: string;
 }
 
-const ProductVideo: React.FC = () => {
-  const [videos, setVideos] = useState<Video[]>([
-    { provider: "Youtube", link: "https://youtu.be/example" },
-  ]);
+const ProductVideo: React.FC = ({ video }) => {
+  const params = useParams();
+  const [videos, setVideos] = useState<Video[]>(video || []);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<Video | null>(null);
 
+  const getVideos = async () => {
+    if (Array.isArray(params?.slug)) {
+      const productId = params.slug[1];
+      const response = await axiosInstance.get(`/products/${productId}/videos`);
+      if (response?.data?.status) {
+        setVideos(response?.data?.data);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getVideos();
+  }, []);
+
   const formik = useFormik({
     initialValues: {
-      provider: "",
-      link: "",
+      provider: video.provider || "",
+      link: video.link || "",
     },
+    enableReinitialize: true,
     validationSchema: Yup.object({
       provider: Yup.string().required("Video provider is required"),
       link: Yup.string()
@@ -29,13 +47,33 @@ const ProductVideo: React.FC = () => {
     }),
     onSubmit: (values) => {
       if (editingVideo) {
-        setVideos((prev) =>
-          prev.map((video) =>
-            video.link === editingVideo.link ? { ...values } : video
-          )
-        );
+        // setVideos((prev) =>
+        //   prev.map((video) =>
+        //     video.link === editingVideo.link ? { ...values } : video
+        //   )
+        // );
       } else {
-        setVideos([...videos, values]);
+        const updatedVideos = [...videos, values];
+        // setVideos([...videos, values]);
+
+        if (Array.isArray(params?.slug)) {
+          const productId = params.slug[1];
+
+          axiosInstance
+            .post(`/products/${productId}/videos`, { videos: updatedVideos })
+            .then((data) => {
+              if (data?.data?.status) {
+                alert("Vidoe added to product successfully");
+              } else {
+                console.error("Something went wrong");
+              }
+            })
+            .catch((error) => {
+              console.error("Error updating vidoe", error);
+            });
+        } else {
+          console.error("Invalid slug format or slug is missing.");
+        }
       }
       closePopup();
     },
@@ -56,8 +94,17 @@ const ProductVideo: React.FC = () => {
     setIsPopupOpen(false);
   };
 
-  const deleteVideo = (link: string) => {
-    setVideos(videos.filter((video) => video.link !== link));
+  const handleDelete = (id: string) => {
+    if (Array.isArray(params?.slug)) {
+      const productId = params.slug[1];
+      axiosInstance
+        .delete(`/products/${productId}/videos/${id}`)
+        .then((data) => {
+          if (data?.data?.status) {
+            alert("Video Deleted");
+          }
+        });
+    }
   };
 
   return (
@@ -105,7 +152,7 @@ const ProductVideo: React.FC = () => {
                   </button>
                   <button
                     className="text-red-500 hover:text-red-700"
-                    onClick={() => deleteVideo(video.link)}
+                    onClick={() => handleDelete(video._id)}
                   >
                     <LucideTrash size={16} />
                   </button>
@@ -129,6 +176,7 @@ const ProductVideo: React.FC = () => {
                   <LucideX size={20} />
                 </button>
               </div>
+
               <form
                 onSubmit={formik.handleSubmit}
                 className="px-6 py-4 flex flex-col gap-4"
