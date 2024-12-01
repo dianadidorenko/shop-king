@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { FaThLarge } from "react-icons/fa";
 import { RiRefund2Fill } from "react-icons/ri";
+import { SiBrandfolder } from "react-icons/si";
 
 interface DashboardSidebarProps {
   openSidebar: boolean;
@@ -19,6 +20,11 @@ const Sidebar: React.FC<DashboardSidebarProps> = ({ openSidebar }) => {
           icon: <ChartBarStacked />,
           label: "Categories",
           link: "/dashboard/categories",
+        },
+        {
+          icon: <SiBrandfolder size={25}/>,
+          label: "Brands",
+          link: "/dashboard/brands",
         },
         {
           icon: <Box />,

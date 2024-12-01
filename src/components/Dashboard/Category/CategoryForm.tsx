@@ -1,32 +1,57 @@
-import React, { useState } from "react";
+import React from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { FaTimes } from "react-icons/fa";
-import JoditEditor from "jodit-react";
+
+import { axiosInstance } from "@/lib/axiosInstance";
 
 interface FormValues {
   category: string;
-  subCategory: string;
+  subcategory: string;
   status: string;
 }
 
-const CategoryForm: React.FC = ({ open, setDrawerOpen }: any) => {
+const CategoryForm: React.FC = ({
+  edit,
+  data,
+  open,
+  setDrawerOpen,
+  fetchCategories,
+}: any) => {
   const toggleDrawer = () => {
     setDrawerOpen(!open);
   };
 
   const formik = useFormik<FormValues>({
     initialValues: {
-      category: "",
-      subCategory: "",
-      status: "Active",
+      category: data?.category || "",
+      subcategory: data?.subcategory || "",
+      status: data?.status || "Active",
     },
+    enableReinitialize: true,
     validationSchema: Yup.object({
       category: Yup.string().required("Category is required"),
-      subCategory: Yup.string().required("Sub category is required"),
+      subcategory: Yup.string().required("Sub category is required"),
     }),
     onSubmit: (values) => {
-      console.log("Form Values", values);
+      if (edit) {
+        axiosInstance.put(`/category/${data?._id}`, values).then((data) => {
+          if (data?.data?.status) {
+            alert("Category Updated");
+            setDrawerOpen(!open);
+            fetchCategories();
+          } else {
+          }
+        });
+      } else {
+        axiosInstance.post(`/category`, values).then((data) => {
+          if (data?.data?.status) {
+            alert("Category Added");
+            formik.resetForm({});
+            setDrawerOpen(!open);
+            fetchCategories();
+          }
+        });
+      }
     },
   });
 
@@ -41,7 +66,9 @@ const CategoryForm: React.FC = ({ open, setDrawerOpen }: any) => {
         >
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Add Product</h2>
+              <h2 className="text-xl font-semibold">
+                {edit ? "Edit" : "Add"} Category
+              </h2>
             </div>
 
             <form onSubmit={formik.handleSubmit}>
@@ -55,14 +82,18 @@ const CategoryForm: React.FC = ({ open, setDrawerOpen }: any) => {
                   >
                     Category *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="category"
                     onChange={formik.handleChange}
                     value={formik.values.category}
                     onBlur={formik.handleBlur}
                     className="mt-1 block p-2 border border-gray-300 rounded-md w-full"
-                  />
+                  >
+                    <option>--</option>
+                    <option value="Man">Man</option>
+                    <option value="Women">Women</option>
+                    <option value="Juniors">Juniors</option>
+                  </select>
                   {formik.touched.category && formik.errors.category ? (
                     <div className="text-red-500 text-sm">
                       {formik.errors.category}
@@ -73,22 +104,22 @@ const CategoryForm: React.FC = ({ open, setDrawerOpen }: any) => {
                 {/* SUB CATEGORY */}
                 <div>
                   <label
-                    htmlFor="subCategory"
+                    htmlFor="subcategory"
                     className="block text-sm font-medium text-gray-700"
                   >
                     Sub Category *
                   </label>
                   <input
                     type="text"
-                    name="subCategory"
+                    name="subcategory"
                     onChange={formik.handleChange}
-                    value={formik.values.subCategory}
+                    value={formik.values.subcategory}
                     onBlur={formik.handleBlur}
                     className="mt-1 block p-2 border border-gray-300 rounded-md w-full"
                   />
-                  {formik.touched.subCategory && formik.errors.subCategory ? (
+                  {formik.touched.subcategory && formik.errors.subcategory ? (
                     <div className="text-red-500 text-sm">
-                      {formik.errors.subCategory}
+                      {formik.errors.subcategory}
                     </div>
                   ) : null}
                 </div>
@@ -129,7 +160,7 @@ const CategoryForm: React.FC = ({ open, setDrawerOpen }: any) => {
                   type="submit"
                   className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 flex items-center"
                 >
-                  Save
+                  {edit ? "Update" : "Save"}
                 </button>
                 <button
                   type="button"

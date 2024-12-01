@@ -5,61 +5,61 @@ import { Pencil, Trash } from "lucide-react";
 import Link from "next/link";
 
 import CustomTable from "@/components/Dashboard/Components/CustomTable";
-import CategoryForm from "@/components/Dashboard/Category/CategoryForm";
 import { axiosInstance } from "@/lib/axiosInstance";
+import BrandForm from "@/components/Dashboard/Brand/BrandForm";
 
-const DashboardCategoriesPage = () => {
+const DashboardBrandsPage = () => {
   const [isDrawerOpen, setDrawerOpen] = useState<boolean>(false);
-  const [categories, setCategories] = useState([]);
-  const [category, setCategory] = useState("");
+
+  const [brands, setBrands] = useState([]);
+  const [brand, setBrand] = useState("");
   const [isEdit, setIsEdit] = useState(false);
 
-  const fetchCategories = async () => {
-    await axiosInstance.get("/category").then((data) => {
+  const fetchBrands = async () => {
+    await axiosInstance.get("/brands").then((data) => {
       if (data?.data?.status) {
-        setCategories(data.data.data);
+        setBrands(data.data.data);
       }
     });
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchBrands();
   }, []);
 
   const handleEdit = async (id: string) => {
     setIsEdit(true);
-    axiosInstance.put(`/category/${id}`).then((data) => {
+    axiosInstance.put(`/brands/${id}`).then((data) => {
       if (data?.data?.status) {
-        setCategory(data.data.data);
+        setBrand(data.data.data);
         setDrawerOpen(true);
       }
     });
   };
 
   const handleDelete = async (id: string) => {
-    axiosInstance.delete(`/category/${id}`).then((data) => {
+    axiosInstance.delete(`/brands/${id}`).then((data) => {
       if (data?.data?.status) {
-        fetchCategories();
+        alert("Brand Deleted");
+        fetchBrands();
       }
     });
   };
 
   const headers = [
     { key: "id", label: "Id" },
-    { key: "category", label: "Category" },
-    { key: "subCategory", label: "Sub Category" },
+    { key: "name", label: "Name" },
     { key: "status", label: "Status" },
     { key: "action", label: "Action" },
   ];
 
-  const data = categories?.map((item, index) => {
+  const data = brands?.map((item, index) => {
     return {
       id: index + 1,
-      category: item?.category,
-      subCategory: item?.subcategory,
+      name: item?.name,
       status: (
         <span className="bg-green-200 text-green-600 p-1 rounded">
-          item?.status
+          {item?.status}
         </span>
       ),
       action: (
@@ -90,15 +90,15 @@ const DashboardCategoriesPage = () => {
     <div>
       <CustomTable
         btnAction={() => setDrawerOpen(!isDrawerOpen)}
-        title="Categories"
+        title="Brands"
         headers={headers}
         data={data}
       />
-      <CategoryForm
+      <BrandForm
         edit={isEdit}
         setIsEdit={setIsEdit}
-        data={category}
-        fetchCategories={fetchCategories}
+        data={brand}
+        fetchBrands={fetchBrands}
         open={isDrawerOpen}
         setDrawerOpen={setDrawerOpen}
       />
@@ -106,4 +106,4 @@ const DashboardCategoriesPage = () => {
   );
 };
 
-export default DashboardCategoriesPage;
+export default DashboardBrandsPage;

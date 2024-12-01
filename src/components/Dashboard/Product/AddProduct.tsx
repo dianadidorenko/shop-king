@@ -25,7 +25,12 @@ interface FormValues {
   description: string;
 }
 
-const ProductForm: React.FC = ({ data, open, setDrawerOpen }: any) => {
+const ProductForm: React.FC = ({
+  fetchProducts,
+  data,
+  open,
+  setDrawerOpen,
+}: any) => {
   const [editorContent, setEditorContent] = useState(data?.description || "");
   const [isEdit, setIsEdit] = useState(false);
 
@@ -94,6 +99,7 @@ const ProductForm: React.FC = ({ data, open, setDrawerOpen }: any) => {
               alert("Product Uploaded");
               formik.resetForm({});
               setDrawerOpen(!open);
+              fetchProducts();
             }
           });
       } else {
@@ -109,6 +115,7 @@ const ProductForm: React.FC = ({ data, open, setDrawerOpen }: any) => {
               alert("Product Updated");
               formik.resetForm({});
               setDrawerOpen(!open);
+              fetchProducts();
             }
           });
       }
@@ -543,7 +550,10 @@ const ProductForm: React.FC = ({ data, open, setDrawerOpen }: any) => {
                 <label htmlFor="description">Description</label>
                 <JoditEditor
                   value={editorContent}
-                  onChange={(newContent) => setEditorContent(newContent)}
+                  onChange={(newContent) => {
+                    setEditorContent(newContent);
+                 
+                  }}
                   className="border rounded"
                 />
               </div>

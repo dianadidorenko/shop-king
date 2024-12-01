@@ -182,7 +182,7 @@ const DashboardProductDetailsPage: React.FC = () => {
         )}
         {activeTab === "Videos" && (
           <div>
-            <ProductVideos video={ product.videos} />
+            <ProductVideos video={product.videos} />
           </div>
         )}
         {activeTab === "Shipping & Return" && (

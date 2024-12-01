@@ -1,18 +1,76 @@
 "use client";
 
-import { Leaf, Plus } from "lucide-react";
-import React, { useState } from "react";
+import { Leaf, Plus, X } from "lucide-react";
+import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+
+import { axiosInstance } from "@/lib/axiosInstance";
 
 const ProductImages: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
+  const params = useParams();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const newImages = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      );
-      setImages((prevImages) => [...prevImages, ...newImages]);
+  const getImages = async () => {
+    if (Array.isArray(params?.slug)) {
+      const productId = params.slug[1];
+      const response = await axiosInstance.get(`/products/${productId}/images`);
+      if (response?.data?.status) {
+        setImages(response?.data?.data);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getImages();
+  }, []);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.currentTarget.files) return false;
+
+    const formData = new FormData();
+    formData.append("image", event.currentTarget.files[0]);
+
+    axiosInstance
+      .post("/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        if (response?.data) {
+          if (Array.isArray(params?.slug)) {
+            const productId = params.slug[1];
+            axiosInstance
+              .post(`/products/${productId}/images`, {
+                imageUrl: response?.data?.file_url,
+              })
+              .then((data) => {
+                if (data?.data?.status) {
+                  alert("Image Added to the Product");
+                }
+              });
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error uploading the image", error);
+      });
+  };
+
+  const handleDelete = (url: string) => {
+    if (Array.isArray(params?.slug)) {
+      const productId = params.slug[1];
+      axiosInstance
+        .delete(`/products/${productId}/images`, { data: { imageUrl: url } })
+        .then((data) => {
+          if (data?.data?.status) {
+            alert("Image Deleted");
+            setImages((prev) => prev.filter((image) => image !== url));
+          }
+        })
+        .catch((error) => {
+          console.error("Error deleting the image", error);
+        });
     }
   };
 
@@ -24,7 +82,7 @@ const ProductImages: React.FC = () => {
           <input
             type="file"
             multiple
-            onChange={handleFileChange}
+            onChange={handleFileUpload}
             className="hidden"
           />
         </label>
@@ -43,12 +101,18 @@ const ProductImages: React.FC = () => {
             <p>No images uploaded yet.</p>
           </div>
         ) : (
-          images.map((src, index) => (
+          images.map((url, index) => (
             <div key={index} className="relative">
               <img
-                src={src}
+                src={url}
                 alt={`Uploaded image ${index + 1}`}
-                className="w-52 h-52 rounded"
+                className="w-60 h-52 rounded-lg"
+              />
+              <X
+                onClick={() => handleDelete(url)}
+                size={40}
+                color="white"
+                className="absolute right-2 top-2 bg-red-600 rounded-full p-1"
               />
             </div>
           ))

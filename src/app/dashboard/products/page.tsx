@@ -13,8 +13,11 @@ const DashboardProducts = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   const fetchProducts = async () => {
-    const products = await axiosInstance.get("/products");
-    setProducts(products.data.data);
+    await axiosInstance.get("/products").then((data) => {
+      if (data?.data?.status) {
+        setProducts(data.data.data);
+      }
+    });
   };
 
   useEffect(() => {
@@ -105,6 +108,7 @@ const DashboardProducts = () => {
         data={data}
       />
       <ProductForm
+        fetchProducts={fetchProducts}
         data={product}
         open={isDrawerOpen}
         setDrawerOpen={setDrawerOpen}

@@ -13,11 +13,12 @@ interface Video {
   _id: string;
 }
 
-const ProductVideo: React.FC = ({ video }) => {
+const ProductVideo: React.FC = () => {
   const params = useParams();
-  const [videos, setVideos] = useState<Video[]>(video || []);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<Video | null>(null);
+  const [videoId, setVideoId] = useState("");
 
   const getVideos = async () => {
     if (Array.isArray(params?.slug)) {
@@ -35,8 +36,8 @@ const ProductVideo: React.FC = ({ video }) => {
 
   const formik = useFormik({
     initialValues: {
-      provider: video.provider || "",
-      link: video.link || "",
+      provider: "",
+      link: "",
     },
     enableReinitialize: true,
     validationSchema: Yup.object({
@@ -47,40 +48,37 @@ const ProductVideo: React.FC = ({ video }) => {
     }),
     onSubmit: (values) => {
       if (editingVideo) {
-        // setVideos((prev) =>
-        //   prev.map((video) =>
-        //     video.link === editingVideo.link ? { ...values } : video
-        //   )
-        // );
-      } else {
-        const updatedVideos = [...videos, values];
-        // setVideos([...videos, values]);
-
         if (Array.isArray(params?.slug)) {
           const productId = params.slug[1];
-
           axiosInstance
-            .post(`/products/${productId}/videos`, { videos: updatedVideos })
+            .put(`/products/${productId}/videos/${videoId}`, values)
             .then((data) => {
               if (data?.data?.status) {
-                alert("Vidoe added to product successfully");
+                alert("Vidoe updated successfully");
               } else {
                 console.error("Something went wrong");
               }
-            })
-            .catch((error) => {
-              console.error("Error updating vidoe", error);
             });
-        } else {
-          console.error("Invalid slug format or slug is missing.");
+        }
+      } else {
+        if (Array.isArray(params?.slug)) {
+          const productId = params.slug[1];
+          axiosInstance
+            .post(`/products/${productId}/videos`, { videos: values })
+            .then((data) => {
+              if (data?.data?.status) {
+                alert("Vidoe added to product successfully");
+              }
+            });
         }
       }
       closePopup();
     },
   });
 
-  const openPopup = (video: Video | null = null) => {
+  const openPopup = (video: Video | null = null, id: string) => {
     setEditingVideo(video);
+    setVideoId(id);
     if (video) {
       formik.setValues(video);
     } else {
@@ -102,6 +100,7 @@ const ProductVideo: React.FC = ({ video }) => {
         .then((data) => {
           if (data?.data?.status) {
             alert("Video Deleted");
+            getVideos();
           }
         });
     }
@@ -146,7 +145,7 @@ const ProductVideo: React.FC = ({ video }) => {
                 <td className="py-2 px-4 border-b flex justify-center">
                   <button
                     className="text-green-500 hover:text-green-700 mr-2"
-                    onClick={() => openPopup(video)}
+                    onClick={() => openPopup(video, video?._id)}
                   >
                     <LucideEdit size={16} />
                   </button>
