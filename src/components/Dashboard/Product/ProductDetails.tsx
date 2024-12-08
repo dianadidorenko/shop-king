@@ -6,7 +6,6 @@ interface ProductInfo {
   category: string;
   barcode: string;
   brand: string;
-  tax: string[];
   buyingPrice: string;
   sellingPrice: string;
   maximumPurchaseQuantity: number;
@@ -55,13 +54,6 @@ const ProductDetails: React.FC<ProductInformationProps> = ({ product }) => {
         <div className="flex justify-between">
           <span className="text-gray-600 font-medium">Brand</span>
           <span className="text-gray-800 font-semibold">{product.brand}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-600 font-medium">Tax</span>
-          <span className="text-gray-800 font-semibold">
-            {/* {product.tax.join(", ")} */}
-            {product.tax}
-          </span>
         </div>
         <div className="flex justify-between">
           <span className="text-gray-600 font-medium">Buying Price</span>
@@ -133,7 +125,10 @@ const ProductDetails: React.FC<ProductInformationProps> = ({ product }) => {
       {/* Описание */}
       <div className="mt-8 p-4 px-6">
         <h2 className="text-gray-800 font-semibold text-lg">Description</h2>
-        <p className="text-gray-600 mt-2">{product.description}</p>
+        <div
+          className="text-gray-600 mt-2"
+          dangerouslySetInnerHTML={{ __html: product.description }}
+        ></div>
       </div>
     </div>
   );

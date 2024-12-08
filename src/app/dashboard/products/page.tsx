@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const DashboardProducts = () => {
+  const [edit, setIsEdit] = useState(false);
   const [products, setProducts] = useState([]);
   const [product, setProduct] = useState([]);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -24,22 +25,21 @@ const DashboardProducts = () => {
     fetchProducts();
   }, []);
 
-  // Delete Product
-  const deleteProduct = async (id: string) => {
-    axiosInstance.delete(`/products/${id}`).then((data) => {
-      if (data?.data.status) {
-        alert("Product deleetd successfully");
-        fetchProducts();
-      }
-    });
-  };
-
-  // Edit Product
   const editProduct = async (id: string) => {
     axiosInstance.get(`/products/${id}`).then((data) => {
       if (data?.data?.status) {
         setProduct(data?.data?.data);
+        setIsEdit(true);
         setDrawerOpen(true);
+      }
+    });
+  };
+
+  const deleteProduct = async (id: string) => {
+    axiosInstance.delete(`/products/${id}`).then((data) => {
+      if (data?.data.status) {
+        alert("Product Deleetd");
+        fetchProducts();
       }
     });
   };
@@ -61,8 +61,14 @@ const DashboardProducts = () => {
       buyingPrice: product.buyingPrice,
       sellingPrice: product.sellingPrice,
       status: (
-        <span className="bg-green-200 text-green-600 p-1 rounded">
-          {product.status}
+        <span
+          className={`p-1 rounded ${
+            product?.status === "Active"
+              ? "bg-green-200 text-green-600"
+              : "bg-red-200 text-red-600"
+          }`}
+        >
+          {product?.status}
         </span>
       ),
       action: (
@@ -102,12 +108,15 @@ const DashboardProducts = () => {
         btnAction={() => {
           setDrawerOpen(!isDrawerOpen);
           setProduct([]);
+          setIsEdit(false);
         }}
         title="Products"
         headers={headers}
         data={data}
       />
       <ProductForm
+        edit={edit}
+        setIsEdit={setIsEdit}
         fetchProducts={fetchProducts}
         data={product}
         open={isDrawerOpen}

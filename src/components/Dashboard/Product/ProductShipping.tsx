@@ -19,14 +19,14 @@ const ProductShipping: React.FC = ({ shippingReturn }) => {
 
   const formik = useFormik<ShippingFormValues>({
     initialValues: {
-      shippingType: shippingReturn.shippingType || "Flat Rate",
-      isProductQuantityMultiply: shippingReturn.isProductQuantityMultiply
+      shippingType: shippingReturn?.shippingType || "Flat Rate",
+      isProductQuantityMultiply: shippingReturn?.isProductQuantityMultiply
         ? "Yes"
         : "No",
-      shippingCost: shippingReturn.shippingCost.toString() || "",
+      shippingCost: shippingReturn?.shippingCost.toString() || "",
       shippingAndReturnPolicy:
-        shippingReturn.shippingAndReturnPolicy ||
-        "We offer extended returns throughoit the holidayes season",
+        shippingReturn?.shippingAndReturnPolicy ||
+        "We offer extended returns throughout the holidays season",
     },
     enableReinitialize: true,
     validationSchema: Yup.object({

@@ -4,9 +4,25 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+import { axiosInstance } from "@/lib/axiosInstance";
 
 const CategoryCarousel = () => {
+  const [categories, setCategories] = useState([]);
+
+  const fecthCategories = async () => {
+    await axiosInstance.get("/category").then((data) => {
+      if (data?.data?.status) {
+        setCategories(data.data.data);
+      }
+    });
+  };
+
+  useEffect(() => {
+    fecthCategories();
+  }, []);
+
   const sliderRef = useRef();
 
   const settings = {
@@ -43,17 +59,6 @@ const CategoryCarousel = () => {
     ],
   };
 
-  const categories = [
-    { name: "Men", image: "/men-thumb.png" },
-    { name: "Hoodies", image: "/hoodies_&_sweatshirts-thumb.png" },
-    { name: "Clothing", image: "/clothing-thumb.png" },
-    { name: "Shorts", image: "/shorts-thumb.png" },
-    { name: "Jackets & Vests", image: "jackets_&_vests-thumb.png" },
-    { name: "Pants & Tights", image: "/pants_&_tights-thumb.png" },
-    { name: "Top & TShirts", image: "tops_&_t-shirts-thumb.png" },
-    { name: "Shoes", image: "/shoes-thumb.png" },
-  ];
-
   return (
     <div className="container category-carousel  mx-auto overflow-hidden px-2 lg:px-4 my-4 mt-10">
       <div className="flex justify-between items-center">
@@ -82,10 +87,12 @@ const CategoryCarousel = () => {
             >
               <img
                 src={item.image}
-                className="w-full rounded-tr-md rounded-tl-md"
+                className="w-full rounded-tr-md rounded-tl-md cursor-pointer"
                 alt={item.name}
               />
-              <h5 className="text-center font-bold mt-3">{item.name}</h5>
+              <h5 className="text-center font-bold mt-3">
+                {item.category + " " + item.subcategory}
+              </h5>
             </div>
           ))}
         </Slider>

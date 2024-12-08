@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 
@@ -7,16 +9,21 @@ import { axiosInstance } from "@/lib/axiosInstance";
 interface FormValues {
   category: string;
   subcategory: string;
+  image: string;
   status: string;
 }
 
 const CategoryForm: React.FC = ({
   edit,
+  setIsEdit,
   data,
   open,
   setDrawerOpen,
   fetchCategories,
 }: any) => {
+  const [image, setImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const toggleDrawer = () => {
     setDrawerOpen(!open);
   };
@@ -25,35 +32,67 @@ const CategoryForm: React.FC = ({
     initialValues: {
       category: data?.category || "",
       subcategory: data?.subcategory || "",
+      image: data?.image || "",
       status: data?.status || "Active",
     },
     enableReinitialize: true,
     validationSchema: Yup.object({
       category: Yup.string().required("Category is required"),
       subcategory: Yup.string().required("Sub category is required"),
+      image: Yup.string().required("Image is required"),
     }),
-    onSubmit: (values) => {
-      if (edit) {
-        axiosInstance.put(`/category/${data?._id}`, values).then((data) => {
-          if (data?.data?.status) {
+    onSubmit: async (values) => {
+      try {
+        if (edit) {
+          const response = await axiosInstance.put(
+            `/category/${data?._id}`,
+            values
+          );
+          if (response?.data?.status) {
             alert("Category Updated");
             setDrawerOpen(!open);
-            fetchCategories();
-          } else {
+            await fetchCategories();
           }
-        });
-      } else {
-        axiosInstance.post(`/category`, values).then((data) => {
-          if (data?.data?.status) {
+        } else {
+          const response = await axiosInstance.post(`/category`, values);
+          if (response?.data?.status) {
             alert("Category Added");
             formik.resetForm({});
             setDrawerOpen(!open);
-            fetchCategories();
+            setIsEdit(false);
+            await fetchCategories();
           }
-        });
+        }
+      } catch (error) {
+        console.error("Error in onSubmit", error);
       }
     },
   });
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.currentTarget.files) return false;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("image", event.currentTarget.files[0]);
+
+    axiosInstance
+      .post("/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        if (response?.data.file_url) {
+          setImage(response.data.file_url);
+          formik.setFieldValue("image", response.data.file_url);
+        }
+      })
+      .catch((error) => {
+        console.error("Error uploading the image", error);
+      })
+      .finally(() => setIsUploading(false));
+  };
 
   return (
     <>
@@ -124,6 +163,30 @@ const CategoryForm: React.FC = ({
                   ) : null}
                 </div>
 
+                {/* IMAGE */}
+                <div>
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    IMAGE
+                  </label>
+                  <div>
+                    <input
+                      type="file"
+                      name="image"
+                      onChange={handleFileChange}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700"
+                    />
+                  </div>
+                  {formik.values.image && (
+                    <div className="mt-4">
+                      <img
+                        src={formik.values.image}
+                        alt="Preview"
+                        className="w-24 h-24 object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+
                 {/* STATUS */}
                 <div>
                   <label
@@ -158,9 +221,14 @@ const CategoryForm: React.FC = ({
               <div className="mt-4 flex justify-end space-x-2">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 flex items-center"
+                  disabled={isUploading}
+                  className={`py-2 px-4 rounded font-bold focus:outline-none focus:shadow-outline ${
+                    isUploading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-500 hover:bg-blue-700 text-white"
+                  }`}
                 >
-                  {edit ? "Update" : "Save"}
+                  {isUploading ? "Please Wait..." : edit ? "Update" : "Save"}
                 </button>
                 <button
                   type="button"

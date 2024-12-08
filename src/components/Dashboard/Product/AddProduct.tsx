@@ -2,16 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import JoditEditor from "jodit-react";
+
 import { axiosInstance } from "@/lib/axiosInstance";
 
 interface FormValues {
   name: string;
   sku: string;
   category: string;
+  subcategory: string;
   barcode: string;
   buyingPrice: number;
   sellingPrice: number;
-  tax: number;
   brand: string;
   status: string;
   canPurchaseAble: string;
@@ -26,13 +27,42 @@ interface FormValues {
 }
 
 const ProductForm: React.FC = ({
+  edit,
+  setIsEdit,
   fetchProducts,
   data,
   open,
   setDrawerOpen,
 }: any) => {
   const [editorContent, setEditorContent] = useState(data?.description || "");
-  const [isEdit, setIsEdit] = useState(false);
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategories] = useState([]);
+  const [subcategoryData, setSubcategoriesData] = useState([]);
+  const [brands, setBrands] = useState([]);
+
+  const fetchCategories = async () => {
+    axiosInstance.get("/category").then((data) => {
+      if (data?.data?.status) {
+        setSubcategories(data?.data?.data);
+      }
+    });
+
+    axiosInstance.get("/brands").then((data) => {
+      if (data?.data?.status) {
+        setBrands(data?.data?.data);
+      }
+    });
+  };
+
+  useEffect(() => {
+    setSubcategoriesData(
+      subcategory.filter((item: any) => item?.category === category)
+    );
+  }, [category]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const toggleDrawer = () => {
     setDrawerOpen(!open);
@@ -54,15 +84,15 @@ const ProductForm: React.FC = ({
       name: data?.name || "",
       sku: data?.sku || "",
       category: data?.category || "",
+      subcategory: data?.subcategory || "",
       barcode: data?.barcode || "",
       buyingPrice: data?.buyingPrice || 0,
       sellingPrice: data?.sellingPrice || 0,
-      tax: data?.tax || 0,
       brand: data?.brand || "",
       status: data?.status || "Active",
-      canPurchaseAble: data?.canPurchaseAble ? "Yes" : "No",
-      showStockOut: data?.showStockOut ? "Enable" : "Disable",
-      refundable: data?.refundable ? "Yes" : "No",
+      canPurchaseAble: data?.canPurchaseAble || "Yes",
+      showStockOut: data?.showStockOut || "Enable",
+      refundable: data?.refundable || "Yes",
       maximumPurchaseQuantity: data?.maximumPurchaseQuantity || 0,
       lowStockWarning: data?.lowStockWarning || 0,
       unit: data?.unit || "",
@@ -85,39 +115,39 @@ const ProductForm: React.FC = ({
         .min(1, "Must be at least 1")
         .required("Low Stock Warning is required"),
     }),
-    onSubmit: (values) => {
-      if (!isEdit) {
-        axiosInstance
-          .post("/products", {
+    onSubmit: async (values) => {
+      try {
+        if (edit) {
+          const response = await axiosInstance.put(`/products/${data?._id}`, {
             ...values,
             showStockOut: values?.showStockOut === "Enable" ? true : false,
             refundable: values?.refundable === "Yes" ? true : false,
             canPurchaseAble: values?.canPurchaseAble === "Yes" ? true : false,
-          })
-          .then((data) => {
-            if (data?.data?.status) {
-              alert("Product Uploaded");
-              formik.resetForm({});
-              setDrawerOpen(!open);
-              fetchProducts();
-            }
           });
-      } else {
-        axiosInstance
-          .put(`/products/${data?._id}`, {
+          if (response?.data?.status) {
+            alert("Product Updated");
+            formik.resetForm({});
+            setDrawerOpen(!open);
+            await fetchProducts();
+          }
+        } else {
+          const response = await axiosInstance.post("/products", {
             ...values,
             showStockOut: values?.showStockOut === "Enable" ? true : false,
             refundable: values?.refundable === "Yes" ? true : false,
             canPurchaseAble: values?.canPurchaseAble === "Yes" ? true : false,
-          })
-          .then((data) => {
-            if (data?.data?.status) {
-              alert("Product Updated");
-              formik.resetForm({});
-              setDrawerOpen(!open);
-              fetchProducts();
-            }
           });
+
+          if (response?.data?.status) {
+            alert("Product Uploaded");
+            formik.resetForm({});
+            setDrawerOpen(!open);
+            setIsEdit(false);
+            await fetchProducts();
+          }
+        }
+      } catch (error) {
+        console.log(error);
       }
     },
   });
@@ -128,13 +158,13 @@ const ProductForm: React.FC = ({
         {/* Right Side Drawer */}
         <div
           style={{ zIndex: 1000 }}
-          className={`fixed w-[800px] top-0 z-50 right-0 h-[100vh] overflow-y-scroll overflow-x-hidden bg-white flex justify-end shadow-lg transform transition-transform 
+          className={`fixed w-[700px] top-0 z-50 right-0 h-[100vh] overflow-y-scroll overflow-x-hidden bg-white flex justify-end shadow-lg transform transition-transform 
                 ${open ? "translate-x-0 block" : "translate-x-full hidden"}`}
         >
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">
-                {isEdit ? "Edit" : "Add"} Product
+                {edit ? "Edit" : "Add"} Product
               </h2>
             </div>
 
@@ -197,14 +227,52 @@ const ProductForm: React.FC = ({
                   </label>
                   <select
                     name="category"
-                    onChange={formik.handleChange}
+                    onChange={(e: any) => {
+                      formik.handleChange(e);
+                      setCategory(e.currentTarget.value);
+                    }}
                     value={formik.values.category}
                     onBlur={formik.handleBlur}
                     className="mt-1 block p-2 border border-gray-300 shadow-sm rounded-md w-full"
                   >
-                    <option>--</option>
-                    <option value="Category 1">Category 1</option>
-                    <option value="Category 2">Category 2</option>
+                    <option disabled value="">
+                      Select Category
+                    </option>
+                    <option value="Man">Man</option>
+                    <option value="Women">Women</option>
+                    <option value="Juniors">Juniors</option>
+                  </select>
+                </div>
+
+                {/* SUBCATEGORY */}
+                <div>
+                  <label
+                    htmlFor="subcategory"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Select Sub Category *
+                  </label>
+                  <select
+                    name="subcategory"
+                    onChange={formik.handleChange}
+                    value={formik.values.subcategory}
+                    onBlur={formik.handleBlur}
+                    className="mt-1 block p-2 border border-gray-300 shadow-sm rounded-md w-full"
+                  >
+                    <option disabled value="">
+                      Select Sub Category
+                    </option>
+                    {subcategoryData?.length ? (
+                      subcategoryData?.map((item: any, index: number) => {
+                        return (
+                          <option key={index} value={item.subcategory}>
+                            {item.subcategory}
+                          </option>
+                        );
+                      })
+                    ) : (
+                      <option disabled>No Data</option>
+                    )}
                   </select>
                 </div>
 
@@ -223,9 +291,20 @@ const ProductForm: React.FC = ({
                     onBlur={formik.handleBlur}
                     className="mt-1 block p-2 border border-gray-300 shadow-sm rounded-md w-full"
                   >
-                    <option>--</option>
-                    <option value="Brand 1">Brand 1</option>
-                    <option value="Brand 2">Brand 2</option>
+                    <option disabled value="">
+                      Select Brand
+                    </option>
+                    {brands.length ? (
+                      brands?.map((item: any, index: number) => {
+                        return (
+                          <option key={index} value={item.name}>
+                            {item.name}
+                          </option>
+                        );
+                      })
+                    ) : (
+                      <option disabled>No Data</option>
+                    )}
                   </select>
                 </div>
 
@@ -292,29 +371,6 @@ const ProductForm: React.FC = ({
                   {formik.touched.sellingPrice && formik.errors.sellingPrice ? (
                     <div className="text-red-500 text-sm">
                       {formik.errors.sellingPrice}
-                    </div>
-                  ) : null}
-                </div>
-
-                {/* TAX */}
-                <div>
-                  <label
-                    htmlFor="tax"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Tax *
-                  </label>
-                  <input
-                    type="number"
-                    name="tax"
-                    onChange={formik.handleChange}
-                    value={formik.values.tax}
-                    onBlur={formik.handleBlur}
-                    className="mt-1 block p-2 border border-gray-300 shadow-sm rounded-md w-full"
-                  />
-                  {formik.touched.tax && formik.errors.tax ? (
-                    <div className="text-red-500 text-sm">
-                      {formik.errors.tax}
                     </div>
                   ) : null}
                 </div>
@@ -545,17 +601,19 @@ const ProductForm: React.FC = ({
                 />
               </div>
 
-              {/* Текстовый редактор Jodit */}
+              {/* Description */}
               <div className="my-3">
                 <label htmlFor="description">Description</label>
-                <JoditEditor
-                  value={editorContent}
-                  onChange={(newContent) => {
-                    setEditorContent(newContent);
-                 
-                  }}
-                  className="border rounded"
-                />
+                <div className="mt-2">
+                  <JoditEditor
+                    value={editorContent}
+                    onChange={(newContent) => {
+                      formik.setFieldValue("description", newContent);
+                      setEditorContent(newContent);
+                    }}
+                    className="border rounded"
+                  />
+                </div>
               </div>
 
               <div className="mt-4 flex justify-end space-x-2">
@@ -563,7 +621,7 @@ const ProductForm: React.FC = ({
                   type="submit"
                   className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 flex items-center"
                 >
-                  {isEdit ? "Update" : "Save"}
+                  {edit ? "Update" : "Save"}
                 </button>
                 <button
                   type="button"

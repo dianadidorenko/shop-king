@@ -10,7 +10,6 @@ import BrandForm from "@/components/Dashboard/Brand/BrandForm";
 
 const DashboardBrandsPage = () => {
   const [isDrawerOpen, setDrawerOpen] = useState<boolean>(false);
-
   const [brands, setBrands] = useState([]);
   const [brand, setBrand] = useState("");
   const [isEdit, setIsEdit] = useState(false);
@@ -28,10 +27,10 @@ const DashboardBrandsPage = () => {
   }, []);
 
   const handleEdit = async (id: string) => {
-    setIsEdit(true);
     axiosInstance.put(`/brands/${id}`).then((data) => {
       if (data?.data?.status) {
         setBrand(data.data.data);
+        setIsEdit(true);
         setDrawerOpen(true);
       }
     });
@@ -49,6 +48,7 @@ const DashboardBrandsPage = () => {
   const headers = [
     { key: "id", label: "Id" },
     { key: "name", label: "Name" },
+    { key: "image", label: "Image" },
     { key: "status", label: "Status" },
     { key: "action", label: "Action" },
   ];
@@ -58,9 +58,18 @@ const DashboardBrandsPage = () => {
       id: index + 1,
       name: item?.name,
       status: (
-        <span className="bg-green-200 text-green-600 p-1 rounded">
+        <span
+          className={`p-1 rounded ${
+            item?.status === "Active"
+              ? "bg-green-200 text-green-600"
+              : "bg-red-200 text-red-600"
+          }`}
+        >
           {item?.status}
         </span>
+      ),
+      image: (
+        <img src={item?.image} alt={item?.category} className="w-25 h-20" />
       ),
       action: (
         <div className="flex items-center gap-2">
@@ -89,7 +98,11 @@ const DashboardBrandsPage = () => {
   return (
     <div>
       <CustomTable
-        btnAction={() => setDrawerOpen(!isDrawerOpen)}
+        btnAction={() => {
+          setDrawerOpen(!isDrawerOpen);
+          setBrand("");
+          setIsEdit(false);
+        }}
         title="Brands"
         headers={headers}
         data={data}

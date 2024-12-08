@@ -166,10 +166,10 @@ const ProductSeo: React.FC = ({ seo }) => {
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700"
             />
           </div>
-          {(formik.values.image || seo.image) && (
+          {(formik.values.image || seo?.image) && (
             <div className="mt-4">
               <img
-                src={formik.values.image || seo.image}
+                src={formik.values.image || seo?.image}
                 alt="Preview"
                 className="w-24 h-24 object-cover"
               />

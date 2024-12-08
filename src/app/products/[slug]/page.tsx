@@ -1,18 +1,51 @@
 "use client";
 
-import ProductCard from "@/components/ProductCard";
-import ProductTabs from "@/components/ProductTabs";
 import { ChevronRight, Heart, Lock, Star } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
+import { toast } from "react-toastify";
+import "react-toastify/ReactToastify.css";
 
-const ProductPage = () => {
-  const [selectedImage, setSelectedImage] = useState("/goods/1-cover.png");
+import ProductCard from "@/components/ProductCard";
+import ProductTabs from "@/components/ProductTabs";
+import { axiosInstance } from "@/lib/axiosInstance";
+
+const ProductPage: React.FC = () => {
+  const params = useParams();
+  const [product, setProduct] = useState({});
   const [quantity, setQuantity] = useState<number>(1);
+  const [selectedImage, setSelectedImage] =
+    useState<string>("goods/1-cover.png");
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [variationId, setVariationId] = useState("");
 
+  // Fetch Products
+  const fetchProducts = async () => {
+    try {
+      const { data } = await axiosInstance.get(
+        `/products/${params?.slug}/byslug`
+      );
+      if (data?.status) {
+        setProduct(data?.data);
+        setSelectedImage(data?.data?.images[0] || "goods/1-cover.png");
+      } else {
+        toast.error("Failed to load product");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred while fetching the product");
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // Slider settings
   const settings = {
     infinite: false,
     speed: 500,
@@ -21,8 +54,10 @@ const ProductPage = () => {
     arrows: false,
   };
 
+  // Quantity actions
   const handleDecrease = () =>
     setQuantity((preqQuantity) => (preqQuantity > 1 ? preqQuantity - 1 : 1));
+
   const handleIncrease = () => {
     setQuantity((preqQuantity) => preqQuantity + 1);
   };
@@ -84,6 +119,46 @@ const ProductPage = () => {
     },
   ];
 
+  // Wishlist Actions
+  const addToWishList = async () => {
+    await axiosInstance
+      .post("/wishlist", { product: product?._id })
+      .then((data) => {
+        if (data?.data?.status) {
+          toast.success("Product added to wishlist");
+        } else {
+          toast.error("Product is not added to wishlist");
+        }
+      });
+  };
+
+  // Provide sizes by clicking color
+  const sizesForSelectedColor = product?.variations
+    ?.filter((item) => item.color === selectedColor)
+    ?.filter(
+      (item, index, self) =>
+        index === self.findIndex((v) => v.size === item.size)
+    );
+
+  // Cart Actions
+  const addToCart = async () => {
+    if (variationId === "") {
+      toast.error("Choose Size and Color First");
+      return false;
+    }
+    axiosInstance
+      .post("/cart", {
+        productId: product?._id,
+        variationId,
+        quantity,
+      })
+      .then((data) => {
+        if (data?.data?.status) {
+          toast.success("Added to Cart Successfully");
+        }
+      });
+  };
+
   return (
     <div className="container mx-auto px-2 xl:px-4 py-12">
       <div className="text-md flex items-center text-gray-500 mb-4">
@@ -99,63 +174,81 @@ const ProductPage = () => {
             className="mb-3 w-full h-[400px] aspect-square object-cover"
             alt="product image"
           />
-          <Slider {...settings}>
-            <div className="w-1/4">
-              <img
-                src={"/goods/2-cover.png"}
-                className="border-2 cursor-pointer"
-                alt="product image"
-              />
-            </div>
-            <div className="w-1/4">
-              <img
-                src={"/goods/3-cover.png"}
-                className="border-2 cursor-pointer"
-                alt="product image"
-              />
-            </div>
-            <div className="w-1/4">
-              <img
-                src={"/goods/4-cover.png"}
-                className="border-2 cursor-pointer"
-                alt="product image"
-              />
-            </div>
-            <div className="w-1/4">
-              <img
-                src={"/goods/5-cover.png"}
-                className="border-2 cursor-pointer"
-                alt="product image"
-              />
-            </div>
-            <div className="w-1/4">
-              <img
-                src={"/goods/6-cover.png"}
-                className="border-2 cursor-pointer"
-                alt="product image"
-              />
-            </div>
-          </Slider>
+          {product.images?.length > 0 && (
+            <Slider {...settings}>
+              {product.images.map((image: string, index: number) => (
+                <div
+                  key={index}
+                  onClick={() => setSelectedImage(image)}
+                  className="w-1/2"
+                >
+                  <img
+                    src={image}
+                    className="border-2 cursor-pointer h-full"
+                    alt={product.name}
+                    onClick={() => setSelectedImage(image)}
+                  />
+                </div>
+              ))}
+            </Slider>
+          )}
         </div>
         <div className="md:w-full">
-          <h1 className="text-3xl font-bold mb-2">Brown Jacket</h1>
-          <p className="text-xl text-gray-700 mb-2">$130</p>
+          <h1 className="text-3xl font-bold mb-2">{product?.name}</h1>
+          <p className="text-xl text-gray-700 mb-2">${product?.sellingPrice}</p>
           <div className="flex items-center mb-4">
-            <Star className="text-yellow-500" />
-            <Star className="text-yellow-500" />
-            <Star className="text-yellow-500" />
-            <Star className="text-yellow-500" />
-            <Star className="text-yellow-500" />
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="text-yellow-500" />
+            ))}
           </div>
-          <div className="mb-4 flex items-center flex-wrap gap-3">
+
+          <div className="mb-4 flex flex-col gap-3">
             <span className="font-bold">Color:</span>
-            <button className="ms-2 px-3 py-2 text-md border rounded-full text-gray-700 bg-[#f7f7fc]">
-              White
-            </button>
-            <button className="ms-2 px-3 py-2 text-md border rounded-full text-gray-700 bg-[#f7f7fc]">
-              Black
-            </button>
+            <div className="flex items-center">
+              {product?.variations
+                ?.filter(
+                  (item, index, self) =>
+                    index ===
+                    self.findIndex((v: string) => v?.color === item?.color)
+                )
+                .map((item, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedColor(item.color)}
+                    className={`ms-2 px-3 py-2 text-md border rounded-full text-gray-700 ${
+                      item.color === selectedColor
+                        ? "bg-[#ff4500] text-white"
+                        : "bg-[#f7f7fc]"
+                    } `}
+                  >
+                    {item?.color}
+                  </button>
+                ))}
+            </div>
+            {selectedColor && (
+              <div className="mb-4 flex flex-col gap-3">
+                <span className="font-bold">
+                  Available sizes for {selectedColor}:
+                </span>
+                <div className="flex items-center">
+                  {sizesForSelectedColor.map((item) => (
+                    <button
+                      key={item._id}
+                      onClick={() => setVariationId(item?._id)}
+                      className={`ms-2 px-3 py-2 text-md border rounded-full text-gray-700 ${
+                        variationId === item?._id
+                          ? "bg-[#f45500] text-white"
+                          : "bg-[#f7f7fc]"
+                      } `}
+                    >
+                      {item.size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+
           <div className="mb-8">
             <span className="font-bold">Quantity:</span>
             <div className="inline-flex items-center ms-2">
@@ -179,12 +272,19 @@ const ProductPage = () => {
               </button>
             </div>
           </div>
+
           <div className="flex space-x-4">
-            <button className="flex items-center text-white bg-[#94a3b8] px-4 py-2 border rounded-3xl">
+            <button
+              onClick={addToCart}
+              className="flex items-center text-white bg-[#94a3b8] px-4 py-2 border rounded-3xl"
+            >
               <Lock className="mr-2" />
               Add To Cart
             </button>
-            <button className="flex items-center px-4 py-2 border rounded-3xl">
+            <button
+              onClick={addToWishList}
+              className="flex items-center px-4 py-2 border rounded-3xl"
+            >
               <Heart className="mr-2" />
               Favourite
             </button>
@@ -193,7 +293,7 @@ const ProductPage = () => {
       </div>
 
       <div className="mt-5">
-        <ProductTabs />
+        <ProductTabs data={product} />
       </div>
 
       <div className="my-5">

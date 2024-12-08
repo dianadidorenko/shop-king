@@ -1,7 +1,7 @@
-import { Circle, Info, Star, Truck, Video } from "lucide-react";
+import { Info, Star, Truck, Video } from "lucide-react";
 import React, { useState } from "react";
 
-const ProductTabs = () => {
+const ProductTabs = ({ data }) => {
   const [activeTab, setActiveTab] = useState<string>("Details");
 
   const handleTabClick = (tab: string) => {
@@ -35,30 +35,52 @@ const ProductTabs = () => {
         {activeTab === "Details" && (
           <div>
             <h2 className="text-3xl font-bold">Product Details</h2>
+            <div
+              dangerouslySetInnerHTML={{ __html: data?.description }}
+              className="mt-4"
+            ></div>
           </div>
         )}
         {activeTab === "Videos" && (
           <div>
             <h2 className="text-3xl font-bold">Product Videos</h2>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {data?.videos?.length ? (
+                data?.videos?.map((video, index) => (
+                  <div
+                    key={index}
+                    className="overflow-hidden rounded-lg aspect-w-16 aspect-h-9 shadow-lg border"
+                  >
+                    <iframe
+                      src={video.link}
+                      width="590"
+                      height="315"
+                      style={{ width: "100%" }}
+                      frameBorder="0"
+                      allowFullScreen
+                      title={`Video ${index + 1}`}
+                    ></iframe>
+                  </div>
+                ))
+              ) : (
+                <img src="/no-video-found.png" alt="no video found" />
+              )}
+            </div>
           </div>
         )}
-
         {activeTab === "Reviews" && (
           <div>
             <h2 className="text-3xl font-bold">Product Reviews</h2>
           </div>
         )}
-
         {activeTab === "Shipping & Returns" && (
           <div>
             <h2 className="text-3xl font-bold">Product Shipping</h2>
-            <ul>
-              <li>Lorem ipsum dolor sit amet consectetur.</li>
-              <li>Lorem ipsum dolor sit amet consectetur.</li>
-              <li>Lorem ipsum dolor sit amet consectetur.</li>
-              <li>Lorem ipsum dolor sit amet consectetur.</li>
-              <li>Lorem ipsum dolor sit amet consectetur.</li>
-            </ul>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: data?.shippingReturn?.shippingAndReturnPolicy,
+              }}
+            ></div>
           </div>
         )}
       </div>

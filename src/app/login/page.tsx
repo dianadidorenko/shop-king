@@ -1,6 +1,5 @@
 "use client";
 
-import { axiosInstance } from "@/lib/axiosInstance";
 import { useFormik } from "formik";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,6 +7,8 @@ import React from "react";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import Cookies from "js-cookie";
+
+import { axiosInstance } from "@/lib/axiosInstance";
 
 interface LoginFormValues {
   email: string;

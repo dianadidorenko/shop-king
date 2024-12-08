@@ -46,33 +46,38 @@ const ProductVideo: React.FC = () => {
         .url("Must be a valid URL")
         .required("Link is required"),
     }),
-    onSubmit: (values) => {
-      if (editingVideo) {
-        if (Array.isArray(params?.slug)) {
-          const productId = params.slug[1];
-          axiosInstance
-            .put(`/products/${productId}/videos/${videoId}`, values)
-            .then((data) => {
-              if (data?.data?.status) {
-                alert("Vidoe updated successfully");
-              } else {
-                console.error("Something went wrong");
-              }
-            });
+    onSubmit: async (values) => {
+      try {
+        if (editingVideo) {
+          if (Array.isArray(params?.slug)) {
+            const productId = params.slug[1];
+            const response = await axiosInstance.put(
+              `/products/${productId}/videos/${videoId}`,
+              values
+            );
+            if (response?.data?.status) {
+              alert("Vidoe updated successfully");
+            } else {
+              console.error("Something went wrong");
+            }
+          }
+        } else {
+          if (Array.isArray(params?.slug)) {
+            const productId = params.slug[1];
+            const response = await axiosInstance.post(
+              `/products/${productId}/videos`,
+              { videos: values }
+            );
+            if (response?.data?.status) {
+              alert("Video added to product successfully");
+              getVideos();
+            }
+          }
         }
-      } else {
-        if (Array.isArray(params?.slug)) {
-          const productId = params.slug[1];
-          axiosInstance
-            .post(`/products/${productId}/videos`, { videos: values })
-            .then((data) => {
-              if (data?.data?.status) {
-                alert("Vidoe added to product successfully");
-              }
-            });
-        }
+        closePopup();
+      } catch (error) {
+        console.log(error);
       }
-      closePopup();
     },
   });
 
@@ -163,10 +168,10 @@ const ProductVideo: React.FC = () => {
 
         {isPopupOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <h2 className="text-lg font-semibold text-gray-700">
-              {editingVideo ? "Edit Video" : "Add Video"}
-            </h2>
             <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+              <h2 className="text-lg font-semibold text-gray-700">
+                {editingVideo ? "Edit Video" : "Add Video"}
+              </h2>
               <div className="flex justify-between items-center mb-4">
                 <button
                   className="text-gray-400 hover:text-gray-600"

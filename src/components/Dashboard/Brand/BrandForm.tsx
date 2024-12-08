@@ -16,6 +16,7 @@ interface FormValues {
 
 const BrandForm: React.FC = ({
   edit,
+  setIsEdit,
   data,
   open,
   setDrawerOpen,
@@ -42,26 +43,30 @@ const BrandForm: React.FC = ({
       image: Yup.string().required("Image is required"),
       description: Yup.string().required("description is required"),
     }),
-    onSubmit: (values) => {
-      if (edit) {
-        axiosInstance.put(`/brands/${data?._id}`, values).then((data) => {
-          if (data?.data?.status) {
+    onSubmit: async (values) => {
+      try {
+        if (edit) {
+          const response = await axiosInstance.put(
+            `/brands/${data?._id}`,
+            values
+          );
+          if (response?.data?.status) {
             alert("Brand Updated");
             setDrawerOpen(!open);
-            fetchBrands();
-          } else {
+            await fetchBrands();
           }
-        });
-      } else {
-        axiosInstance.post(`/brands`, values).then((data) => {
-          console.log(data);
-          if (data?.data?.status) {
+        } else {
+          const response = await axiosInstance.post(`/brands`, values);
+          if (response?.data?.status) {
             alert("Brand Added");
             formik.resetForm({});
             setDrawerOpen(!open);
-            fetchBrands();
+            setIsEdit(false);
+            await fetchBrands();
           }
-        });
+        }
+      } catch (error) {
+        console.error("Error in onSubmit", error);
       }
     },
   });
@@ -216,7 +221,7 @@ const BrandForm: React.FC = ({
                       : "bg-blue-500 hover:bg-blue-700 text-white"
                   }`}
                 >
-                  {isUploading ? "Please Wait..." : "Save"}
+                  {isUploading ? "Please Wait..." : edit ? "Update" : "Save"}
                 </button>
                 <button
                   type="button"

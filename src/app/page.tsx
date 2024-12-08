@@ -1,9 +1,14 @@
+"use client";
+
 import Carousel from "@/components/Home/Carousel";
 import CategoryCarousel from "@/components/Home/CategoryCarousel";
 import PopularBrands from "@/components/Home/PopularBrands";
 import PromotionCards from "@/components/Home/PromotionCards";
 import ProductCard from "@/components/ProductCard";
+import { axiosInstance } from "@/lib/axiosInstance";
 import { Headset, Heart, Lock, Ship } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export default function Home() {
   const products = [
@@ -33,6 +38,36 @@ export default function Home() {
     },
   ];
 
+  const [flashSaleProducts, setFlashSaleProducts] = useState([]);
+  const [latestProducts, setlatestProducts] = useState([]);
+
+  const fetchFlashSales = async () => {
+    await axiosInstance.get("/products/flash-sales").then((data) => {
+      if (data?.data?.status) {
+        setFlashSaleProducts(data.data.data);
+      }
+    });
+    await axiosInstance.get("/products").then((data) => {
+      if (data?.data?.status) {
+        setlatestProducts(data.data.data);
+      }
+    });
+  };
+
+  useEffect(() => {
+    fetchFlashSales();
+  }, []);
+
+  const addToWishlist = async (id: string) => {
+    await axiosInstance.post("/wishlist", { product: id }).then((data) => {
+      if (data?.data?.status) {
+        toast.success("Product added to wishlist");
+      } else {
+        toast.error("Product is not added to wishlist");
+      }
+    });
+  };
+
   const services = [
     {
       icon: <Headset size={30} className="text-center text-[#f23e14]" />,
@@ -55,14 +90,27 @@ export default function Home() {
       description: "Comprehensive quality control and affordable prices",
     },
   ];
+
   return (
     <div className="mb-8">
       <Carousel />
       <CategoryCarousel />
       <PromotionCards />
       <div className="container px-2 xl:px-4 mt-10 mx-auto">
-        <h2 className="text-4xl font-bold mb-4">Trendy Collections</h2>
-        <ProductCard isWishlisted={false} data={products} />
+        <h2 className="text-4xl font-bold mb-4">Latest Products</h2>
+        <ProductCard
+          isWishlisted={false}
+          wishlistClick={addToWishlist}
+          data={latestProducts}
+        />
+      </div>
+      <div className="container px-2 xl:px-4 mt-10 mx-auto">
+        <h2 className="text-4xl font-bold mb-4">Flash Sales</h2>
+        <ProductCard
+          isWishlisted={false}
+          wishlistClick={addToWishlist}
+          data={flashSaleProducts}
+        />
       </div>
       <PopularBrands />
       <div className="conatiner mx-auto px-2 xl:px-4 mt-10">

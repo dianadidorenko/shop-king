@@ -31,6 +31,7 @@ const DashboardCategoriesPage = () => {
     axiosInstance.put(`/category/${id}`).then((data) => {
       if (data?.data?.status) {
         setCategory(data.data.data);
+        setIsEdit(true);
         setDrawerOpen(true);
       }
     });
@@ -39,6 +40,7 @@ const DashboardCategoriesPage = () => {
   const handleDelete = async (id: string) => {
     axiosInstance.delete(`/category/${id}`).then((data) => {
       if (data?.data?.status) {
+        alert("Category deleted");
         fetchCategories();
       }
     });
@@ -48,6 +50,7 @@ const DashboardCategoriesPage = () => {
     { key: "id", label: "Id" },
     { key: "category", label: "Category" },
     { key: "subCategory", label: "Sub Category" },
+    { key: "image", label: "Image" },
     { key: "status", label: "Status" },
     { key: "action", label: "Action" },
   ];
@@ -58,10 +61,17 @@ const DashboardCategoriesPage = () => {
       category: item?.category,
       subCategory: item?.subcategory,
       status: (
-        <span className="bg-green-200 text-green-600 p-1 rounded">
-          item?.status
+        <span
+          className={`p-1 rounded ${
+            item?.status === "Active"
+              ? "bg-green-200 text-green-600"
+              : "bg-red-200 text-red-600"
+          }`}
+        >
+          {item?.status}
         </span>
       ),
+      image: <img src={item?.image} alt={item?.category} className="w-20 h-20" />,
       action: (
         <div className="flex items-center gap-2">
           <Link
@@ -89,7 +99,11 @@ const DashboardCategoriesPage = () => {
   return (
     <div>
       <CustomTable
-        btnAction={() => setDrawerOpen(!isDrawerOpen)}
+        btnAction={() => {
+          setDrawerOpen(!isDrawerOpen);
+          setCategory("");
+          setIsEdit(false);
+        }}
         title="Categories"
         headers={headers}
         data={data}

@@ -47,6 +47,7 @@ const ProductImages: React.FC = () => {
               .then((data) => {
                 if (data?.data?.status) {
                   alert("Image Added to the Product");
+                  getImages();
                 }
               });
           }

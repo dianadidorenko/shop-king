@@ -1,5 +1,8 @@
+"use client";
+
 import { Box, ChartBarStacked, ShoppingCart, Undo } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { FaThLarge } from "react-icons/fa";
 import { RiRefund2Fill } from "react-icons/ri";
@@ -10,7 +13,8 @@ interface DashboardSidebarProps {
 }
 
 const Sidebar: React.FC<DashboardSidebarProps> = ({ openSidebar }) => {
-  const [activeLink, setActiveLink] = useState<string>("Dashboard");
+  // const [activeLink, setActiveLink] = useState<string>("/dashboard");
+  const pathname = usePathname();
 
   const sidebarSections = [
     {
@@ -22,7 +26,7 @@ const Sidebar: React.FC<DashboardSidebarProps> = ({ openSidebar }) => {
           link: "/dashboard/categories",
         },
         {
-          icon: <SiBrandfolder size={25}/>,
+          icon: <SiBrandfolder size={25} />,
           label: "Brands",
           link: "/dashboard/brands",
         },
@@ -61,7 +65,7 @@ const Sidebar: React.FC<DashboardSidebarProps> = ({ openSidebar }) => {
         <Link
           href={"/dashboard"}
           className={`${
-            activeLink === "Dashboard"
+            pathname === "/dashboard"
               ? "bg-[#f34d13] text-white font-semibold"
               : ""
           } flex items-center space-x-2 p-2 rounded-md cursor-pointer`}
@@ -81,9 +85,8 @@ const Sidebar: React.FC<DashboardSidebarProps> = ({ openSidebar }) => {
                 <Link
                   href={item.link}
                   key={index}
-                  onClick={() => setActiveLink(item.label)}
                   className={`${
-                    activeLink === item.label
+                    pathname === item.link
                       ? "bg-[#f34d13] text-white font-semibold"
                       : ""
                   } flex items-center space-x-2 p-2 rounded-md cursor-pointer`}
