@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Cookies from "js-cookie";
 
 import MenuTabs from "./MenuTabs";
 import Profile from "./Profile";
@@ -19,9 +20,12 @@ import CartSidebar from "../CartSidebar";
 
 const Header = () => {
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggenIn] = useState(false);
+  const [isLoggedIn, setIsLoggenIn] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
+  useEffect(() => {
+    setIsLoggenIn(Cookies.get("token") || null);
+  }, [Cookies.get("token")]);
   return (
     <>
       <header className="bg-white shadow-md sticky top-0 z-20">

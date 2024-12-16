@@ -41,24 +41,22 @@ const ProductForm: React.FC = ({
   const [brands, setBrands] = useState([]);
 
   const fetchCategories = async () => {
-    axiosInstance.get("/category").then((data) => {
-      if (data?.data?.status) {
-        setSubcategories(data?.data?.data);
-      }
-    });
+    const categoryResponse = await axiosInstance.get("/category");
+    if (categoryResponse?.data?.status) {
+      setSubcategories(categoryResponse?.data?.data);
+    }
 
-    axiosInstance.get("/brands").then((data) => {
-      if (data?.data?.status) {
-        setBrands(data?.data?.data);
-      }
-    });
+    const brandsResponse = await axiosInstance.get("/brands");
+    if (brandsResponse?.data?.status) {
+      setBrands(brandsResponse?.data?.data);
+    }
   };
 
   useEffect(() => {
     setSubcategoriesData(
       subcategory.filter((item: any) => item?.category === category)
     );
-  }, [category]);
+  }, [category, subcategory]);
 
   useEffect(() => {
     fetchCategories();
@@ -78,6 +76,8 @@ const ProductForm: React.FC = ({
       setEditorContent(data?.description);
     }
   }, [data]);
+
+  console.log(subcategoryData);
 
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -238,7 +238,7 @@ const ProductForm: React.FC = ({
                     <option disabled value="">
                       Select Category
                     </option>
-                    <option value="Man">Man</option>
+                    <option value="Men">Men</option>
                     <option value="Women">Women</option>
                     <option value="Juniors">Juniors</option>
                   </select>

@@ -1,110 +1,59 @@
 import Link from "next/link";
-import { useState } from "react";
-
-type TabName = "Men" | "Women" | "Juniors";
-
-type TabData = {
-  [key in TabName]: {
-    clothing: string[];
-    shoes: string[];
-    accessories: string[];
-    image: string;
-  };
-};
-
-const tabData: TabData = {
-  Men: {
-    image: "/men-cover.png",
-    clothing: ["Hoodies & SweatShirts"],
-    shoes: ["Running"],
-    accessories: ["Bags & Backpacks"],
-  },
-  Women: {
-    image: "/women-cover.png",
-    clothing: ["Tops", "Jeans"],
-    shoes: ["Heels", "Flats"],
-    accessories: ["HandBags"],
-  },
-  Juniors: {
-    image: "/juniors-cover.png",
-    clothing: ["T-Shirts"],
-    shoes: ["Sneakers"],
-    accessories: ["Hats"],
-  },
-};
+import { useEffect, useState } from "react";
+import { axiosInstance } from "@/lib/axiosInstance";
 
 const MenuTabs = () => {
-  const [activeTab, setActiveTab] = useState<TabName>("Men");
+  const [category, setCategory] = useState([]);
 
-  const renderContent = () => {
-    const data = tabData[activeTab];
+  // Получение категорий
+  const fetchCategories = async () => {
+    await axiosInstance.get("/category").then((data) => {
+      if (data?.data?.status) {
+        setCategory(data.data.data);
+      }
+    });
+  };
 
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const [activeTab, setActiveTab] = useState("Men");
+
+  // Маппинг для картинок и названий табов
+  const tabImages = {
+    Men: "/men-cover.png",
+    Women: "/women-cover.png",
+    Juniors: "/juniors-cover.png",
+  };
+
+  // Общий компонент для вывода контента таба
+  const renderTabContent = (tab) => {
     return (
-      <div className="flex justify-between py-3 w-full">
-        <div className="flex justify-between space-x-8 p-4">
-          <div className="w-1/2">
-            <img
-              src={data?.image}
-              alt="category"
-              className="rounded-lg w-full object-cover h-[300px]"
-            />
-          </div>
+      <div className="flex justify-between space-x-8 p-4">
+        <div className="w-1/2">
+          <img
+            src={tabImages[tab]} // Выбор изображения в зависимости от активного таба
+            alt="category"
+            className="rounded-lg w-full object-cover h-[300px]"
+          />
+        </div>
 
-          <div className="flex justify-normal space-x-8 w-full">
-            <div className="w-1/3">
-              <h2 className="font-bold mb-4">Clothing</h2>
-              <ul className="space-y-2">
-                {data?.clothing?.map((item, index) => {
-                  return (
-                    <li key={index}>
-                      <Link
-                        href={`/products?category=${item?.toLowerCase()}`}
-                        className="text-base"
-                      >
-                        {item}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-
-            <div className="w-1/3">
-              <h2 className="font-bold mb-4">Shoes</h2>
-              <ul className="space-y-2">
-                {data?.shoes?.map((item, index) => {
-                  return (
-                    <li key={index}>
-                      <Link
-                        href={`/products?category=${item?.toLowerCase()}`}
-                        className="text-base"
-                      >
-                        {item}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-
-            <div className="w-1/3">
-              <h2 className="font-bold mb-4">Accessories</h2>
-              <ul className="space-y-2">
-                {data?.accessories?.map((item, index) => {
-                  return (
-                    <li key={index}>
-                      <Link
-                        href={`/products?category=${item?.toLowerCase()}`}
-                        className="text-base"
-                      >
-                        {item}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
+        <div className="flex justify-normal space-x-8 w-full">
+          <ul className="flex flex-row flex-wrap justify-start gap-2 w-full">
+            {category
+              .filter((item) => item.category === tab) // Фильтрация по текущей категории
+              .map((item, index) => (
+                <li key={index} className="border rounded-md p-2 h-[40px]">
+                  <Link
+                    href={`/products?subcategory=${item?.subcategory}`}
+                    className="text-base"
+                  >
+                    {item?.subcategory}
+                  </Link>
+                </li>
+              ))}
+          </ul>
         </div>
       </div>
     );
@@ -113,23 +62,21 @@ const MenuTabs = () => {
   return (
     <div className="w-full">
       <nav className="flex justify-center space-x-8 py-4 border-b">
-        {(["Men", "Women", "Juniors"] as TabName[]).map((tab) => {
-          return (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`text-black ${
-                activeTab === tab
-                  ? "text-orange-500 border-b-2 border-orange-500"
-                  : ""
-              }`}
-            >
-              {tab}
-            </button>
-          );
-        })}
+        {["Men", "Women", "Juniors"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`text-black ${
+              activeTab === tab
+                ? "text-orange-500 border-b-2 border-orange-500"
+                : ""
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </nav>
-      {renderContent()}
+      {renderTabContent(activeTab)}{" "}
     </div>
   );
 };

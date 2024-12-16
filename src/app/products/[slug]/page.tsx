@@ -17,14 +17,25 @@ import { axiosInstance } from "@/lib/axiosInstance";
 const ProductPage: React.FC = () => {
   const params = useParams();
   const [product, setProduct] = useState({});
+  const [products, setProducts] = useState([]);
   const [quantity, setQuantity] = useState<number>(1);
+
   const [selectedImage, setSelectedImage] =
     useState<string>("goods/1-cover.png");
+
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [variationId, setVariationId] = useState("");
 
-  // Fetch Products
   const fetchProducts = async () => {
+    await axiosInstance.get(`/products`).then((data) => {
+      if (data?.data?.status) {
+        setProducts(data?.data?.data);
+      }
+    });
+  };
+
+  // Fetch Product
+  const fetchProduct = async () => {
     try {
       const { data } = await axiosInstance.get(
         `/products/${params?.slug}/byslug`
@@ -42,6 +53,7 @@ const ProductPage: React.FC = () => {
   };
 
   useEffect(() => {
+    fetchProduct();
     fetchProducts();
   }, []);
 
@@ -61,63 +73,6 @@ const ProductPage: React.FC = () => {
   const handleIncrease = () => {
     setQuantity((preqQuantity) => preqQuantity + 1);
   };
-
-  const products = [
-    {
-      title: "DailyRun Leggings",
-      price: 40.0,
-      originalPrice: 80.0,
-      image: "/goods/2-cover.png",
-    },
-    {
-      title: "Denim Jacket",
-      price: 120.0,
-      originalPrice: 150.0,
-      image: "/goods/3-cover.png",
-    },
-    {
-      title: "Dri-Fit Crop Top",
-      price: 96.0,
-      originalPrice: 120.0,
-      image: "/goods/4-cover.png",
-    },
-    {
-      title: "Dri-Fit One",
-      price: 80.0,
-      originalPrice: 100.0,
-      image: "/goods/5-cover.png",
-    },
-    {
-      title: "Dri-Fit Pro",
-      price: 96.0,
-      originalPrice: 120.0,
-      image: "/goods/6-cover.png",
-    },
-    {
-      title: "Dri-Fit Striker",
-      price: 55.0,
-      originalPrice: 110.0,
-      image: "/goods/7-cover.png",
-    },
-    {
-      title: "Essential Hoodie",
-      price: 80.0,
-      originalPrice: 160.0,
-      image: "/goods/8-cover.png",
-    },
-    {
-      title: "Everyday Plus",
-      price: 64.0,
-      originalPrice: 80.0,
-      image: "/goods/9-cover.png",
-    },
-    {
-      title: "Denim Jacket",
-      price: 120.0,
-      originalPrice: 150.0,
-      image: "/goods/1-cover.png",
-    },
-  ];
 
   // Wishlist Actions
   const addToWishList = async () => {
@@ -162,9 +117,8 @@ const ProductPage: React.FC = () => {
   return (
     <div className="container mx-auto px-2 xl:px-4 py-12">
       <div className="text-md flex items-center text-gray-500 mb-4">
-        <Link href={"#"}>Menu</Link> <ChevronRight size={15} />
-        <Link href={"#"}>Clothing</Link> <ChevronRight size={15} />
-        <Link href={"#"}>Jackets</Link>
+        <Link href={"/products"}>Products</Link> <ChevronRight size={15} />
+        <Link href={"#"}>{product?.name}</Link>
       </div>
 
       <div className="flex flex-col md:flex-row space-x-8">

@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { Ellipsis, X } from "lucide-react";
+import { axiosInstance } from "@/lib/axiosInstance";
+import { toast } from "react-toastify";
 
 const AddressSchema = Yup.object().shape({
   fullName: Yup.string().required("Full name is required"),
@@ -16,7 +18,7 @@ interface AddressFormProps {
   onClose: () => void;
 }
 
-const AddressForm: React.FC<AddressFormProps> = ({ onClose }) => {
+const AddressForm: React.FC<AddressFormProps> = ({ data, onClose }) => {
   return (
     <div className="w-[600px] mx-auto p-4 bg-white shadow-md rounded-lg space-y-2">
       <div className="flex justify-between items-center mb-6">
@@ -27,19 +29,27 @@ const AddressForm: React.FC<AddressFormProps> = ({ onClose }) => {
       </div>
       <Formik
         initialValues={{
-          fullName: "",
-          email: "",
-          phone: "",
-          country: "",
-          state: "",
-          city: "",
-          zipcode: "",
-          streetAddress: "",
+          fullName: data?.fullName || "",
+          email: data?.email || "",
+          phone: data?.phone || "",
+          country: data?.country || "",
+          state: data?.state || "",
+          city: data?.city || "",
+          zipcode: data?.zipcode || "",
+          streetAddress: data?.streetAddress || "",
         }}
+        enableReinitialize={true}
         validationSchema={AddressSchema}
         onSubmit={(values, { setSubmitting }) => {
           setSubmitting(true);
           console.log(values);
+          axiosInstance
+            .put("/users", { billingAddress: values })
+            .then((data) => {
+              if (data?.data?.status) {
+                toast.success("Address Added");
+              }
+            });
           setSubmitting(false);
           onClose();
         }}
@@ -98,18 +108,19 @@ const AddressForm: React.FC<AddressFormProps> = ({ onClose }) => {
                   Country <span className="text-red-500">*</span>
                 </label>
                 <Field
-                  name="fullName"
+                  name="country"
                   as="select"
                   className="mt-1 block w-3/4 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                 >
                   <option value="">--</option>
                   <option value="Bangladesh">Bangladesh</option>
+                  <option value="Usa">Usa</option>
                 </Field>
                 <ErrorMessage name="fullName" className="text-red-500 mt-2" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Country <span className="text-red-500">*</span>
+                  State <span className="text-red-500">*</span>
                 </label>
                 <Field
                   name="state"
@@ -117,6 +128,8 @@ const AddressForm: React.FC<AddressFormProps> = ({ onClose }) => {
                   className="mt-1 block w-3/4 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                 >
                   <option value="">--</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
                 </Field>
                 <ErrorMessage name="state" />
               </div>
@@ -130,6 +143,8 @@ const AddressForm: React.FC<AddressFormProps> = ({ onClose }) => {
                   className="mt-1 block w-3/4 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                 >
                   <option value="">--</option>
+                  <option value="Bangladesh">Bangladesh</option>
+                  <option value="Bangladesh">Bangladesh</option>
                 </Field>
                 <ErrorMessage name="city" />
               </div>
@@ -154,6 +169,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ onClose }) => {
                 />
                 <ErrorMessage name="streetAddress" component="div" />
               </div>
+
               <div className="flex justify-end space-x-4">
                 <button
                   type="submit"
@@ -180,56 +196,63 @@ const AddressForm: React.FC<AddressFormProps> = ({ onClose }) => {
 
 const AddressList: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
+  const [data, setData] = useState({});
 
   const toggleModal = () => {
     setShowModal(!showModal);
   };
 
+  const getAddress = async () => {
+    await axiosInstance.get("/user").then((data) => {
+      if (data?.data?.status) {
+        setData(data.data.user.billingAddress);
+      }
+    });
+  };
+  useEffect(() => {
+    getAddress();
+  }, []);
+
+  console.log(data);
+
   return (
     <div className="p-8">
       <h2 className="text-2xl font-bold mb-4 text-orange-500">Addresses</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <div className="flex justify-between items-center mb-4">
-            <h2>Will Smith</h2>
-            <Ellipsis />
+      <div className="flex justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+              <h2>{data?.fullName}</h2>
+              <Ellipsis />
+            </div>
+            <p>
+              {data?.email}, {data?.phone}, {data?.city}, {data?.country},{" "}
+              {data?.zipcode}
+            </p>
           </div>
-          <p>
-            customer@example.com, 1243r3535455, Dhaka, Dhaka, Bangladesh, House
-            3, Road: 111, Block C
-          </p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <div className="flex justify-between items-center mb-4">
-            <h2>Will Smith</h2>
-            <Ellipsis />
-          </div>
-          <p>
-            customer@example.com, 1243r3535455, Dhaka, Dhaka, Bangladesh, House
-            3, Road: 111, Block C
-          </p>
-        </div>
-        <div>
-          <button className="absolute top-2 right-8 text-blue-400 hover:text-blue-600">
-            Edit
-          </button>
-          <button className="absolute top-2 right-2 text-red-400 hover:text-red-600">
-            <X />
-          </button>
-        </div>
-      </div>
 
-      <button
-        onClick={toggleModal}
-        className="mt-4 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg flex items-center hover:bg-red-100"
-      >
-        <span className="text-2xl mr-2">+</span> Add New Address
-      </button>
+          <div>
+            <button className="absolute top-2 right-8 text-blue-400 hover:text-blue-600">
+              Edit
+            </button>
+            <button className="absolute top-2 right-2 text-red-400 hover:text-red-600">
+              <X />
+            </button>
+          </div>
+        </div>
+
+        <button
+          onClick={toggleModal}
+          className="mt-4 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg flex items-center hover:bg-red-100"
+        >
+          Update Address
+        </button>
+      </div>
 
       {showModal && (
         <div className="fixed top-14 inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
           <div className="bg-white p-4 rounded-lg shadow-lg">
-            <AddressForm onClose={toggleModal} />
+            <AddressForm onClose={toggleModal} data={data} />
           </div>
         </div>
       )}

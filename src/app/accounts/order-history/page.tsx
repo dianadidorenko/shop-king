@@ -1,7 +1,11 @@
 "use client";
 
 import { Ellipsis } from "lucide-react";
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
+import { format } from "date-fns";
+
+import { axiosInstance } from "@/lib/axiosInstance";
+import Link from "next/link";
 
 interface DropdownProps {
   children: ReactNode;
@@ -38,6 +42,32 @@ const Dropdown: React.FC<DropdownProps> = ({ children }) => {
 };
 
 const OrderHistoryPage = () => {
+  const [data, setData] = useState([]);
+
+  const getOrders = async () => {
+    await axiosInstance.get("/orders").then((data) => {
+      if (data?.data?.status) {
+        setData(data.data.data);
+      }
+    });
+  };
+
+  useEffect(() => {
+    getOrders();
+  }, []);
+
+  const cancelOrder = async (id: string) => {
+    await axiosInstance
+      .put(`/orders/${id}`, { orderStatus: "Cancelled" })
+      .then((data) => {
+        if (data?.data?.status) {
+          alert("Order Cancelled");
+          getOrders();
+        }
+      });
+  };
+
+  console.log(data);
   return (
     <main className="w-full px-4 pb-6">
       <h1 className="text-2xl font-semibold text-orange-500 mb-6">
@@ -56,117 +86,59 @@ const OrderHistoryPage = () => {
             </tr>
           </thead>
           <tbody>
-            <tr className="border-t">
-              <td className="py-4">
-                0110243
-                <br />
-                <span className="text-gray-500 text-sm">
-                  07:45 PM, 01-10-2024
-                </span>
-              </td>
-              <td className="py-4">3 Product</td>
-              <td className="py-4">
-                <span className="bg-yellow-100 text-yellow-500 px-2 py-1 rounded">
-                  Pending
-                </span>
-              </td>
-              <td className="py-4">
-                <span className="bg-red-100 text-red-500 px-2 py-1 rounded">
-                  Unpaid
-                </span>
-              </td>
-              <td className="py-4">₹278.00</td>
-              <td className="py-4">
-                <Dropdown>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 duration-300"
-                  >
-                    View Details
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 duration-300"
-                  >
-                    Cancel Order
-                  </a>
-                </Dropdown>
-              </td>
-            </tr>
-            <tr className="border-t">
-              <td className="py-4">
-                0110242
-                <br />
-                <span className="text-gray-500 text-sm">
-                  07:45 PM, 01-10-2024
-                </span>
-              </td>
-              <td className="py-4">4 Product</td>
-              <td className="py-4">
-                <span className="bg-green-100 text-green-500 px-2 py-1 rounded">
-                  Delivered
-                </span>
-              </td>
-              <td className="py-4">
-                <span className="bg-green-100 text-green-500 px-2 py-1 rounded">
-                  Paid
-                </span>
-              </td>
-              <td className="py-4">₹720.00</td>
-              <td className="py-4">
-                <Dropdown>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 duration-300"
-                  >
-                    View Details
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 duration-300"
-                  >
-                    Cancel Order
-                  </a>
-                </Dropdown>
-              </td>
-            </tr>
-            <tr className="border-t">
-              <td className="py-4">
-                0110241
-                <br />
-                <span className="text-gray-500 text-sm">
-                  07:45 PM, 01-10-2024
-                </span>
-              </td>
-              <td className="py-4">4 Product</td>
-              <td className="py-4">
-                <span className="bg-green-100 text-green-500 px-2 py-1 rounded">
-                  Delivered
-                </span>
-              </td>
-              <td className="py-4">
-                <span className="bg-green-100 text-green-500 px-2 py-1 rounded">
-                  Paid
-                </span>
-              </td>
-              <td className="py-4">₹415.20</td>
-              <td className="py-4">
-                <Dropdown>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 duration-300"
-                  >
-                    View Details
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 duration-300"
-                  >
-                    Cancel Order
-                  </a>
-                </Dropdown>
-              </td>
-            </tr>
+            {data?.map((item, index) => {
+              return (
+                <tr key={item?.orderId} className="border-t">
+                  <td className="py-4">
+                    {item?.orderId}
+                    <br />
+                    <span className="text-gray-500 text-sm">
+                      {item?.createdAt
+                        ? format(
+                            new Date(item?.createdAt),
+                            "dd MMM yyyy, hh:mm a"
+                          )
+                        : "Invalid Date"}
+                    </span>
+                  </td>
+                  <td className="py-4">
+                    {item?.items?.length}{" "}
+                    {item?.items?.length === 1 ? "Product" : "Products"}
+                  </td>
+                  <td className="py-4">
+                    <span className="bg-yellow-100 text-yellow-500 px-2 py-1 rounded">
+                      {item?.orderStatus}
+                    </span>
+                  </td>
+                  <td className="py-4">
+                    <span className="bg-red-100 text-red-500 px-2 py-1 rounded">
+                      {item?.paymentType}
+                    </span>
+                  </td>
+                  <td className="py-4">${item?.total}</td>
+                  <td className="py-4">
+                    <Dropdown>
+                      <Link
+                        href={`/account/order-history/${item?._id}`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 duration-300"
+                      >
+                        View Details
+                      </Link>
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          cancelOrder(item?._id);
+                        }}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 duration-300"
+                      >
+                        Cancel Order
+                      </a>
+                    </Dropdown>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         <div className="mt-4 text-gray-500">Showing 1 to 3 of 3 results</div>

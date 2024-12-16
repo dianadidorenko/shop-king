@@ -1,24 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MultiRangeSlider, { ChangeResult } from "multi-range-slider-react";
 
-const ProductFilter = () => {
+const ProductFilter = ({ onFilterChange, filters }) => {
   const [sortBy, setSortBy] = useState<string>("");
-  const [size, setSize] = useState<string>("");
+  const [size, setSelectedSize] = useState<string>("");
+  const [color, setSelectedColor] = useState<string>("");
+  const [brand, setSelectedBrand] = useState<string>("");
 
   const [minPrice, setMinPrice] = useState<number>(0);
-  const [maxPrice, setMaxPrice] = useState<number>(0);
+  const [maxPrice, setMaxPrice] = useState<number>(10000);
 
-  const handleMultiRangeChange = ({
-    min,
-    max,
-  }: {
-    min: number;
-    max: number;
-  }) => {
-    setMinPrice(min);
+  useEffect(() => {
+    if (Object.keys(filters).length === 0) {
+      setMinPrice(0);
+      setMaxPrice(0);
+      setSelectedBrand("");
+      setSelectedColor("");
+      setSelectedSize("");
+      setSortBy("");
+    }
+  }, [filters]);
+
+  const handleMaxPrice = (max) => {
     setMaxPrice(max);
+    triggerFilterChange({ maxPrice: max });
+  };
+
+  const handleMinPrice = (min) => {
+    setMinPrice(min);
+    triggerFilterChange({ minPrice: min });
+  };
+
+  const handleSortChange = (sort: string) => {
+    setSortBy(sort);
+    triggerFilterChange({ sortBy: sort });
+  };
+
+  const handleBrandChange = (brand: string) => {
+    setSelectedBrand(brand);
+    triggerFilterChange({ brand: brand });
+  };
+
+  const handleColorChange = (color: string) => {
+    setSelectedColor(color);
+    triggerFilterChange({ color: color });
+  };
+
+  const handleSizeChange = (size: string) => {
+    setSelectedSize(size);
+    triggerFilterChange({ size: size });
+  };
+
+  const triggerFilterChange = (updatedFilter) => {
+    onFilterChange({
+      sortBy,
+      size,
+      color,
+      brand,
+      minPrice,
+      maxPrice,
+      ...updatedFilter,
+    });
   };
 
   return (
@@ -31,8 +75,8 @@ const ProductFilter = () => {
               type="radio"
               name="sort"
               id="sort"
-              value="newest"
-              onChange={() => setSortBy("newest")}
+              onChange={() => handleSortChange("newest")}
+              checked={sortBy === "newest"}
             />
             Newest
           </label>
@@ -41,8 +85,8 @@ const ProductFilter = () => {
               type="radio"
               name="sort"
               id="priceLowToHigh"
-              value="low-to-high"
-              onChange={() => setSortBy("price-low-to-high")}
+              onChange={() => handleSortChange("price-low-to-high")}
+              checked={sortBy === "price-low-to-high"}
             />
             Price: Low to High
           </label>
@@ -51,28 +95,30 @@ const ProductFilter = () => {
               type="radio"
               name="sort"
               id="priceHighToLow"
-              value="low-to-high"
-              onChange={() => setSortBy("price-high-to-low")}
+              onChange={() => handleSortChange("price-high-to-low")}
+              checked={sortBy === "price-high-to-low"}
             />
             Price: High to Low
           </label>
         </div>
       </div>
+
       <div className="mb-4">
         <h3 className="font-semibold mb-2">Price</h3>
         <div className="flex items-center gap-3 mb-2">
           <input
-            type="text"
-            readOnly
+            type="number"
+            onChange={(e: any) => handleMinPrice(e.target.value)}
             className="w-1/2 p-1 border rounded mr-2 focus:outline-none"
           />
           <input
-            type="text"
-            readOnly
+            type="number"
+            onChange={(e: any) => handleMaxPrice(e.target.value)}
             className="w-1/2 p-1 border rounded focus:outline-none"
           />
         </div>
-        <MultiRangeSlider
+
+        {/* <MultiRangeSlider
           min={0}
           max={10000}
           step={10}
@@ -87,114 +133,55 @@ const ProductFilter = () => {
           thumbLeftColor="#f34d13"
           thumbRightColor="#f34d13"
           barInnerColor="white"
-          onInput={(e: ChangeResult) => {
-            handleMultiRangeChange(e);
-          }}
-        />
+        /> */}
       </div>
+
       <div className="mb-4">
         <h3 className="font-semibold mb-2">Brand</h3>
         <div>
-          <label htmlFor="brand" className="flex items-center gap-3 mb-2">
-            <input
-              type="checkbox"
-              name="brand"
-              id="brand"
-              value="newest"
-              onChange={() => setSortBy("newest")}
-            />
-            Reebok
-          </label>
-          <label htmlFor="brand" className="flex items-center gap-3 mb-2">
-            <input
-              type="checkbox"
-              name="brand"
-              id="brand"
-              value="low-to-high"
-              onChange={() => setSortBy("price-low-to-high")}
-            />
-            Levis
-          </label>
-          <label htmlFor="brand" className="flex items-center gap-3 mb-2">
-            <input
-              type="checkbox"
-              name="brand"
-              id="brand"
-              value="low-to-high"
-              onChange={() => setSortBy("price-high-to-low")}
-            />
-            Puma
-          </label>
+          {["Reebok", "Levis", "Puma"].map((item) => (
+            <label key={item} className="flex items-center gap-3 mb-2">
+              <input
+                type="radio"
+                name="brand"
+                onChange={() => handleBrandChange(item)}
+                checked={brand === item}
+              />
+              {item}
+            </label>
+          ))}
         </div>
       </div>
+
       <div className="mb-4">
         <h3 className="font-semibold mb-2">Color</h3>
         <div>
-          <label htmlFor="color" className="flex items-center gap-3 mb-2">
-            <input
-              type="checkbox"
-              name="color"
-              id="color"
-              value="newest"
-              onChange={() => setSortBy("newest")}
-            />
-            Red
-          </label>
-          <label htmlFor="color" className="flex items-center gap-3 mb-2">
-            <input
-              type="checkbox"
-              name="color"
-              id="color"
-              value="low-to-high"
-              onChange={() => setSortBy("price-low-to-high")}
-            />
-            White
-          </label>
-          <label htmlFor="color" className="flex items-center gap-3 mb-2">
-            <input
-              type="checkbox"
-              name="color"
-              id="color"
-              value="low-to-high"
-              onChange={() => setSortBy("price-high-to-low")}
-            />
-            Blue
-          </label>
+          {["Red", "White", "Blue"].map((item) => (
+            <label key={item} className="flex items-center gap-3 mb-2">
+              <input
+                type="radio"
+                onChange={() => handleColorChange(item)}
+                checked={color === item}
+              />
+              {item}
+            </label>
+          ))}
         </div>
       </div>
+
       <div className="mb-4">
         <h3 className="font-semibold mb-2">Size</h3>
         <div>
-          <label htmlFor="size" className="flex items-center gap-3 mb-2">
-            <input
-              type="checkbox"
-              name="size"
-              id="size"
-              value="s"
-              onChange={() => setSize("s")}
-            />
-            S
-          </label>
-          <label htmlFor="size" className="flex items-center gap-3 mb-2">
-            <input
-              type="checkbox"
-              name="size"
-              id="size"
-              value="m"
-              onChange={() => setSize("m")}
-            />
-            M
-          </label>
-          <label htmlFor="size" className="flex items-center gap-3 mb-2">
-            <input
-              type="checkbox"
-              name="size"
-              id="size"
-              value="l"
-              onChange={() => setSize("l")}
-            />
-            L
-          </label>
+          {["S", "M", "L"].map((item) => (
+            <label key={item} className="flex items-center gap-3 mb-2">
+              <input
+                type="radio"
+                onChange={() => handleSizeChange(item)}
+                checked={size === item}
+              />
+              {item}
+            </label>
+          ))}
         </div>
       </div>
     </div>

@@ -129,7 +129,7 @@ const CategoryForm: React.FC = ({
                     className="mt-1 block p-2 border border-gray-300 rounded-md w-full"
                   >
                     <option>--</option>
-                    <option value="Man">Man</option>
+                    <option value="Men">Men</option>
                     <option value="Women">Women</option>
                     <option value="Juniors">Juniors</option>
                   </select>

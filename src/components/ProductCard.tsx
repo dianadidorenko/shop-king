@@ -69,6 +69,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   ${item?.sellingPrice}
                 </span>
               </div>
+
+              <p>{item?.subcategory}</p>
             </div>
           </div>
         </Link>

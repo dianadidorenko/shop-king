@@ -3,6 +3,7 @@
 import React from "react";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { axiosInstance } from "@/lib/axiosInstance";
 
 const PasswordSchema = Yup.object().shape({
   oldPassword: Yup.string().required("Old password is required"),
@@ -29,8 +30,16 @@ const ChangePasswordPage: React.FC = () => {
             confirmPassword: "",
           }}
           validationSchema={PasswordSchema}
-          onSubmit={(values, { setSubmitting }) => {
+          onSubmit={(values, { setSubmitting, resetForm }) => {
             setSubmitting(true);
+            axiosInstance.put("/user/change-password", values).then((data) => {
+              console.log(data.data);
+
+              if (data?.data?.status) {
+                alert("Password changed successfully");
+                resetForm();
+              }
+            });
             console.log(values);
             setSubmitting(false);
           }}

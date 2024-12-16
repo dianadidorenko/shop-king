@@ -12,17 +12,17 @@ import "react-toastify/ReactToastify.css";
 interface SignUpFormValues {
   name: string;
   email: string;
-  mobile: string;
+  phone: string;
   password: string;
 }
 
 const SignUpSchema = Yup.object().shape({
-  name: Yup.string().required("Name is requiered"),
+  name: Yup.string().required("Name is required"),
   email: Yup.string().email("Invalid email").required("Email is required"),
-  mobile: Yup.string().required("Mobile is required"),
+  phone: Yup.string().required("Mobile is required"),
   password: Yup.string()
     .min(6, "Password must be at least 6 characheters long")
-    .required("Password is requiered"),
+    .required("Password is required"),
 });
 
 const SignUpPage: React.FC = () => {
@@ -32,7 +32,7 @@ const SignUpPage: React.FC = () => {
     initialValues: {
       name: "",
       email: "",
-      mobile: "",
+      phone: "",
       password: "",
     },
     validationSchema: SignUpSchema,
@@ -73,7 +73,7 @@ const SignUpPage: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="name"
-                  className="block text-gray-700 text-sm fonr-bold mb-2"
+                  className="block text-gray-700 text-sm font-bold mb-2"
                 >
                   Name <span className="text-red-500">*</span>
                 </label>
@@ -128,28 +128,28 @@ const SignUpPage: React.FC = () => {
 
               <div className="mb-4">
                 <label
-                  htmlFor="mobile"
+                  htmlFor="phone"
                   className="block text-gray-700 text-sm fonr-bold mb-2"
                 >
-                  Mobile <span className="text-red-500">*</span>
+                  Phone <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="mobile"
+                  type="phone"
                   className={`shadow appearance-none border rounde w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none ${
-                    formik.touched.mobile && formik.errors.mobile
+                    formik.touched.phone && formik.errors.phone
                       ? "border-red-500"
                       : ""
                   }`}
-                  id="mobile"
-                  name="mobile"
+                  id="phone"
+                  name="phone"
                   placeholder="Mobile"
-                  value={formik.values.mobile}
+                  value={formik.values.phone}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                 />
-                {formik.touched.mobile && formik.errors.mobile && (
+                {formik.touched.phone && formik.errors.phone && (
                   <p className="text-red-500 text-sx mt-1">
-                    {formik.errors.mobile}
+                    {formik.errors.phone}
                   </p>
                 )}
               </div>

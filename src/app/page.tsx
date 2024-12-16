@@ -11,33 +11,6 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 export default function Home() {
-  const products = [
-    {
-      title: "Brown Jacket",
-      image: "/goods/1-cover.png",
-      price: "$50",
-      originalPrice: "$70",
-    },
-    {
-      title: "Brown Jacket",
-      image: "/goods/1-cover.png",
-      price: "$50",
-      originalPrice: "$70",
-    },
-    {
-      title: "Brown Jacket",
-      image: "/goods/1-cover.png",
-      price: "$50",
-      originalPrice: "$70",
-    },
-    {
-      title: "Brown Jacket",
-      image: "/goods/1-cover.png",
-      price: "$50",
-      originalPrice: "$70",
-    },
-  ];
-
   const [flashSaleProducts, setFlashSaleProducts] = useState([]);
   const [latestProducts, setlatestProducts] = useState([]);
 
