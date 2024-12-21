@@ -1,16 +1,15 @@
 "use client";
 
-import { Ellipsis } from "lucide-react";
-import React, { ReactNode, useEffect, useState } from "react";
-import { format } from "date-fns";
+import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 import { axiosInstance } from "@/lib/axiosInstance";
 import OrderDetails from "@/components/Dashboard/Orders/OrderDetails";
+import { OrderItem } from "@/lib/type";
 
 const OrderHistoryPage = () => {
   const params = useParams();
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<OrderItem | null>(null);
 
   const fetchOrder = async () => {
     await axiosInstance.get(`/orders/${params.slug}`).then((data) => {
@@ -22,18 +21,7 @@ const OrderHistoryPage = () => {
 
   useEffect(() => {
     fetchOrder();
-  }, []);
-
-  const cancelOrder = async (id: string) => {
-    await axiosInstance
-      .put(`/orders/${id}`, { orderStatus: "Cancelled" })
-      .then((data) => {
-        if (data?.data?.status) {
-          alert("Order Cancelled");
-          fetchOrder();
-        }
-      });
-  };
+  }, [params.slug]);
 
   return (
     <main className="w-full px-4 pb-6">

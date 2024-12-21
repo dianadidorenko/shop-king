@@ -9,13 +9,20 @@ interface OrderItem {
   variant: string;
   price: number;
   productImage: string;
+  size: string;
+  color: string;
+  quantity: string;
 }
 
 interface Address {
-  name: string;
+  fullName: string;
   email: string;
   phone: string;
   address: string;
+  city: string;
+  state: string;
+  zipcode: string;
+  country: string;
 }
 
 interface OrderDetailsProps {
@@ -78,7 +85,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
       });
   };
 
-  const changeOrderStatus = async (e) => {
+  const changeOrderStatus = async (e: any) => {
     await axiosInstance
       .put(`/orders/${_id}`, { orderStatus: e.target.value })
       .then((data) => {
@@ -108,7 +115,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
           <div className="flex flex-col gap-2 space-x-2 mt-5">
             <span className="text-xs text-gray-500 flex items-center gap-1">
               <Clock size={18} />
-              {createdAt
+              {createdAt && !isNaN(new Date(createdAt).getTime())
                 ? format(new Date(createdAt), "dd MMM yyyy, hh:mm a")
                 : "Invalid Date"}
             </span>
@@ -123,24 +130,22 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
 
         {from !== "user" && (
           <div className="flex space-x-4 mb-4">
-            {orderStatus && orderStatus === "Pending" && (
-              <button
-                onClick={cancelOrder}
-                className="bg-red-500 text-sm text-white px-4 py-2 rounded flex items-center"
-              >
-                Reject
-              </button>
-            )}
-
-            {orderStatus && orderStatus === "Pending" && (
-              <button
-                onClick={acceptOrder}
-                className="bg-green-500 text-sm text-white px-4 py-2 rounded flex items-center"
-              >
-                Accept
-              </button>
-            )}
-            {orderStatus && orderStatus !== "Pending" && (
+            {orderStatus === "Pending" ? (
+              <>
+                <button
+                  onClick={cancelOrder}
+                  className="bg-red-500 text-sm text-white px-4 py-2 rounded flex items-center"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={acceptOrder}
+                  className="bg-green-500 text-sm text-white px-4 py-2 rounded flex items-center"
+                >
+                  Accept
+                </button>
+              </>
+            ) : (
               <select
                 name="orderStatus"
                 onChange={changeOrderStatus}

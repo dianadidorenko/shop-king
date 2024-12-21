@@ -3,17 +3,17 @@
 import { Box, ChartBarStacked, ShoppingCart, Undo } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { FaThLarge } from "react-icons/fa";
 import { RiRefund2Fill } from "react-icons/ri";
 import { SiBrandfolder } from "react-icons/si";
+import { TbLogout } from "react-icons/tb";
+import Cookies from "js-cookie";
 
 interface DashboardSidebarProps {
   openSidebar: boolean;
 }
 
 const Sidebar: React.FC<DashboardSidebarProps> = ({ openSidebar }) => {
-  // const [activeLink, setActiveLink] = useState<string>("/dashboard");
   const pathname = usePathname();
 
   const sidebarSections = [
@@ -45,19 +45,34 @@ const Sidebar: React.FC<DashboardSidebarProps> = ({ openSidebar }) => {
           label: "View Orders",
           link: "/dashboard/orders ",
         },
+        // {
+        //   icon: <Undo />,
+        //   label: "Return Orders",
+        //   link: "/dashboard/return",
+        // },
+        // {
+        //   icon: <RiRefund2Fill size={25} />,
+        //   label: "Return & Refunds",
+        //   link: "/dashboard/return-refunds",
+        // },
+      ],
+    },
+    {
+      title: "Settings",
+      items: [
         {
-          icon: <Undo />,
-          label: "Return Orders",
-          link: "/dashboard/return",
-        },
-        {
-          icon: <RiRefund2Fill size={25} />,
-          label: "Return & Refunds",
-          link: "/dashboard/return-refunds",
+          icon: <TbLogout size={25} />,
+          label: "Logout",
+          link: "void:0",
         },
       ],
     },
   ];
+
+  const handleLogout = async () => {
+    Cookies.remove("token");
+    window.location.assign("/");
+  };
 
   return (
     <div className="h-full bg-white shadow-md w-64">
@@ -81,20 +96,41 @@ const Sidebar: React.FC<DashboardSidebarProps> = ({ openSidebar }) => {
               {item?.title}
             </h2>
             <div className="mt-2">
-              {item?.items?.map((item, index) => (
-                <Link
-                  href={item.link}
-                  key={index}
-                  className={`${
-                    pathname === item.link
-                      ? "bg-[#f34d13] text-white font-semibold"
-                      : ""
-                  } flex items-center space-x-2 p-2 rounded-md cursor-pointer`}
-                >
-                  {item.icon}
-                  <span className="md:inline">{item.label}</span>
-                </Link>
-              ))}
+              {item?.items?.map((item, index) => {
+                if (item?.label === "Logout") {
+                  return (
+                    <Link
+                      href={item.link}
+                      key={index}
+                      className={`${
+                        pathname === item.link
+                          ? "bg-[#f34d13] text-white font-semibold"
+                          : ""
+                      } flex items-center space-x-2 p-2 rounded-md cursor-pointer`}
+                      onClick={() => {
+                        handleLogout();
+                      }}
+                    >
+                      {item.icon}
+                      <span className="md:inline">{item.label}</span>
+                    </Link>
+                  );
+                } else
+                  return (
+                    <Link
+                      href={item.link}
+                      key={index}
+                      className={`${
+                        pathname === item.link
+                          ? "bg-[#f34d13] text-white font-semibold"
+                          : ""
+                      } flex items-center space-x-2 p-2 rounded-md cursor-pointer`}
+                    >
+                      {item.icon}
+                      <span className="md:inline">{item.label}</span>
+                    </Link>
+                  );
+              })}
             </div>
           </div>
         ))}

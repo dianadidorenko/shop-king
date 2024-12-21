@@ -5,35 +5,131 @@ import {
   Heart,
   Menu,
   Search,
-  ShoppingBag,
   ShoppingCart,
   User,
 } from "lucide-react";
+import {
+  FaQuestionCircle,
+  FaTwitter,
+  FaInstagram,
+  FaYoutube,
+  FaHome,
+  FaTags,
+  FaExchangeAlt,
+  FaShippingFast,
+  FaRulerCombined,
+  FaCookieBite,
+  FaClipboard,
+  FaUserAlt,
+  FaFacebook,
+} from "react-icons/fa";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
+import { SiAboutdotme } from "react-icons/si";
+import { TiContacts } from "react-icons/ti";
+import { HiOutlineShoppingBag } from "react-icons/hi2";
 
 import MenuTabs from "./MenuTabs";
 import Profile from "./Profile";
 import CartSidebar from "../CartSidebar";
+import Sidebar from "./Sidebar";
+import { axiosInstance } from "@/lib/axiosInstance";
+import { UserType } from "@/lib/type";
 
 const Header = () => {
   const pathname = usePathname();
-  const [isLoggedIn, setIsLoggenIn] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [user, setUser] = useState<UserType>({});
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const [cartItemsLength, setCartItemsLength] = useState<number>(0);
+
+  const menuItems = [
+    { link: "/", label: "Home", icon: FaHome },
+    { link: "/offers", label: "Offers", icon: FaTags },
+    { link: "/faq", label: "FAQ", icon: FaQuestionCircle },
+    {
+      link: "/return-exchange",
+      label: "Return & Exchange",
+      icon: FaExchangeAlt,
+    },
+    { link: "/shipping-policy", label: "Shipping", icon: FaShippingFast },
+    { link: "/size-charts", label: "Size Charts", icon: FaRulerCombined },
+    { link: "/cookie-policy", label: "Cookies Policy", icon: FaCookieBite },
+    {
+      link: "/term-conditions",
+      label: "Terms & Conditions",
+      icon: FaClipboard,
+    },
+    { link: "/privacy-policy", label: "Privacy Policy", icon: FaUserAlt },
+    { link: "/about-us", label: "About Us", icon: SiAboutdotme },
+    { link: "/contact-us", label: "Contact Us", icon: TiContacts },
+  ];
+
+  const socialLinks = [
+    { icon: FaFacebook, url: "https://facebook.com" },
+    { icon: FaTwitter, url: "https://twitter.com" },
+    { icon: FaInstagram, url: "https://instagram.com" },
+    { icon: FaYoutube, url: "https://youtube.com" },
+  ];
 
   useEffect(() => {
-    setIsLoggenIn(Cookies.get("token") || null);
+    setIsLoggedIn(Cookies.get("token") || null);
   }, [Cookies.get("token")]);
+
+  const fetchCartItemsLength = async () => {
+    try {
+      const response = await axiosInstance.get("/cart");
+      if (response?.data?.status) {
+        const itemsLength = response.data.data.items.length || 0;
+        setCartItemsLength(itemsLength);
+      }
+    } catch (error) {
+      console.log("Ошибка при получении длины корзины:", error);
+      setCartItemsLength(0);
+    }
+  };
+
+  useEffect(() => {
+    fetchCartItemsLength();
+  }, []);
+
+  useEffect(() => {
+    axiosInstance.get("/user").then((data) => {
+      if (data?.data?.status) {
+        setUser(data?.data.user);
+      }
+    });
+  }, []);
+
   return (
     <>
+      <Sidebar
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        menuItems={menuItems}
+        socialLinks={socialLinks}
+        language="English"
+        address="House : 25, Road No: 2, Block A, Mirgur-1, Dhake 1216"
+        email="info@inilabs.net"
+        phone="1212232334"
+      />
       <header className="bg-white shadow-md sticky top-0 z-20">
         <div className="container flex px-2 lg:px-4 items-center justify-between m-auto gap-x-10">
           <div className="flex items-center space-x-4 lg:space-x-8">
-            <Menu className="flex lg:hidden" />
+            <div className="block lg:hidden">
+              <Menu
+                className="block lg:hidden cursor-pointer text-2xl font-normal"
+                onClick={() => setIsDrawerOpen(true)}
+              />
+            </div>
+
             <Link href={"/"} className="flex items-center space-x-3 py-4">
               <ShoppingCart className="hidden lg:flex text-3xl text-[#f76411]" />
+
               <div className="font-bold">
                 <span className="text-3xl text-[#f23e14]">S</span>
                 <span className="text-2xl text-orange-600">hop</span>
@@ -77,7 +173,7 @@ const Header = () => {
               />
               <Search className="absolute left-3 top-1/2 text-gray-400 transform -translate-y-1/2" />
             </div>
-            <div className="relative group me-4 py-4">
+            {/* <div className="relative group me-4 py-4">
               <div className="flex items-center space-x-2 cursor-pointer">
                 <img src="/english.png" alt="flag" className="h-5" />
                 <span>English</span>
@@ -88,9 +184,9 @@ const Header = () => {
                   <img src="/english.png" alt="flag" /> English
                 </button>
               </div>
-            </div>
+            </div> */}
             <Link href={"/wishlist"}>
-              <Heart className="cursor-pointer" fill="black" />
+              <Heart className="cursor-pointer text-black" fill="black" />
             </Link>
             <div className="relative group me-4 py-4">
               <div className="flex items-center space-x-2 cursor-pointer">
@@ -116,8 +212,8 @@ const Header = () => {
                 ) : (
                   <Profile
                     user={{
-                      name: "Diana",
-                      phone: "+380974379424",
+                      name: user?.name || "Name",
+                      phone: user?.phone || "Phone",
                       avatarUrl: "/avatar.png",
                     }}
                   />
@@ -125,10 +221,16 @@ const Header = () => {
               </div>
             </div>
             <div
-              className="bg-black p-2 rounded-full cursor-pointer"
+              className="bg-black p-2 rounded-full cursor-pointer relative"
               onClick={() => setIsOpen(true)}
             >
-              <ShoppingBag fill="white" />
+              <HiOutlineShoppingBag
+                fill="white"
+                size={cartItemsLength > 0 ? 35 : 30}
+              />
+              <p className="text-base font-bold absolute top-[19px] right-[21px]">
+                {cartItemsLength > 0 && cartItemsLength}
+              </p>
             </div>
           </div>
           <div className="lg:hidden">

@@ -49,7 +49,7 @@ const SignUpPage: React.FC = () => {
         })
         .catch((error) => {
           toast.error("Registration failed");
-          console.error(error);
+          console.log(error);
         });
     },
   });

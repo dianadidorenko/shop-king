@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
+
 import { axiosInstance } from "@/lib/axiosInstance";
+import { UserType } from "@/lib/type";
 
 const AccountInfoSchema = Yup.object().shape({
   name: Yup.string().required("Full name is required"),
@@ -12,7 +14,7 @@ const AccountInfoSchema = Yup.object().shape({
 });
 
 const AccountInfoPage: React.FC = () => {
-  const [data, setData] = useState({});
+  const [data, setData] = useState<UserType | null>(null);
 
   const fetchUser = async () => {
     await axiosInstance.get("/user").then((data) => {

@@ -19,17 +19,16 @@ const OffersPage = () => {
   useEffect(() => {
     fetchFlashSales();
   }, []);
-
   return (
     <div className="container px-2 xl:px-4 py-12 mx-auto">
       <div className="flex items-center">
-        <h1 className="text-xl xl:text-4xl font-bold mb-0">Offer Prpducts</h1>
+        <h1 className="text-xl xl:text-4xl font-bold mb-0">Offer Products</h1>
         <span className="text-md xl:text-xl ms-2 relative top-[1px]">
           ({flashSaleProducts?.length} Products Found)
         </span>
       </div>
       <div className="mt-5">
-        <ProductCard isWishlisted={false} data={flashSaleProducts} />
+        <ProductCard data={flashSaleProducts} />
       </div>
     </div>
   );

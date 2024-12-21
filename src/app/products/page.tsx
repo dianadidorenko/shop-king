@@ -9,36 +9,76 @@ import ProductFilter from "@/components/ProductFilter";
 import { axiosInstance } from "@/lib/axiosInstance";
 
 const ProductsPage = () => {
-  const [products, setProducts] = React.useState([]);
+  const [products, setProducts] = useState([]);
   const params = useSearchParams();
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState(null);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     const subcategory = params.get("subcategory");
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      subcategory: subcategory,
-    }));
+    if (subcategory) {
+      setFilters({ subcategory });
+    } else {
+      setFilters(null);
+    }
   }, [params]);
 
-  const fetchProducts = async () => {
-    const isClient = typeof window !== "undefined";
-    if (isClient) {
-      await axiosInstance.get("/products", { params: filters }).then((data) => {
-        if (data?.data?.status) {
-          setProducts(data.data.data);
-        }
+  // Функция для загрузки всех товаров
+  const fetchAllProducts = async () => {
+    try {
+      const response = await axiosInstance.get("/products", {
+        params: {
+          ...filters,
+          page: currentPage,
+          limit: itemsPerPage,
+        },
       });
+
+      if (response?.data?.status) {
+        setProducts(response.data.data);
+        setTotalProducts(response.data.totalCount);
+      }
+    } catch (err) {
+      console.error("Error fetching all products:", err);
     }
   };
 
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
+  // Функция для загрузки товаров с фильтрами
+  const fetchFilteredProducts = async () => {
+    try {
+      const response = await axiosInstance.get("/products", {
+        params: filters,
+      });
+      if (response?.data?.status) {
+        setProducts(response.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching filtered products:", err);
+    }
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, [filters]);
+    if (filters) {
+      fetchFilteredProducts();
+    } else {
+      fetchAllProducts();
+    }
+  }, [filters, currentPage]);
+
+  const handleFilterChange = (newFilters) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.ceil(totalProducts / itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  console.log(products);
 
   return (
     <div className="container mx-auto px-2 xl:px-4 py-12">
@@ -71,6 +111,22 @@ const ProductsPage = () => {
           </div>
           <div className="w-full">
             <ProductCard isWishlisted={false} data={products} />
+            {/* Пагинация */}
+            <div className="flex justify-center mt-6">
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`px-4 py-2 mx-1 rounded-md ${
+                    currentPage === index + 1
+                      ? "bg-[#ff4500] text-white"
+                      : "bg-gray-200"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

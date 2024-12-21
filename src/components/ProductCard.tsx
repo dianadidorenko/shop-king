@@ -1,25 +1,20 @@
 import { Heart, Star } from "lucide-react";
 import Link from "next/link";
 
-interface Product {
-  images: [string];
-  slug: string;
-  name: string;
-  buyingPrice: string;
-  sellingPrice: string;
-}
+import { Product } from "@/lib/type";
 
 interface ProductCardProps {
   data: Product[];
-  isWishlisted?: boolean;
-  wishlistClick?: () => void;
+  isWishlisted?: string[] | [];
+  wishlistClick?: (id: string) => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
   data,
-  isWishlisted,
+  isWishlisted = [],
   wishlistClick,
 }) => {
+
   return (
     <div className="relative grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-4 gap-4">
       {data?.map((item, index) => (
@@ -30,9 +25,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
         >
           <div className="w-full">
             <div className="relative">
-              <span className="absolute top-3 left-3 z-[9] bg-blue-900 text-white text-xs font-bold px-2 py-1 rounded-full">
-                Flash Sale
-              </span>
+              {data?.map((item) => item.offer) && (
+                <span className="absolute top-3 left-3 z-[9] bg-blue-900 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  Flash Sale
+                </span>
+              )}
               <Heart
                 size={34}
                 onClick={(e) => {
@@ -41,8 +38,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   wishlistClick?.(item._id);
                 }}
                 className="absolute top-4 right-4 bg-white p-[10px] rounded-full z-10"
-                color={isWishlisted ? "#ff4800" : "#d1d5db"}
-                fill={isWishlisted ? "#ff4800" : "#d1d5db"}
+                color={isWishlisted.includes(item._id) ? "#ff4800" : "#d1d5db"}
+                fill={isWishlisted.includes(item._id) ? "#ff4800" : "#d1d5db"}
               />
               <div className="overflow-hidden">
                 <img
@@ -69,7 +66,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   ${item?.sellingPrice}
                 </span>
               </div>
-
               <p>{item?.subcategory}</p>
             </div>
           </div>

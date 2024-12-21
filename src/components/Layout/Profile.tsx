@@ -1,7 +1,6 @@
 import { Key, Lock, LogOut, MapPin, RotateCcw, User } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
 
 type MenuItems = {
   icon: JSX.Element;
@@ -20,8 +19,6 @@ type ProfileProps = {
 };
 
 const Profile: React.FC<ProfileProps> = ({ user }) => {
-  const router = useRouter();
-
   const menuItems: MenuItems[] = [
     {
       icon: <Lock className="mr-2" />,
@@ -50,6 +47,12 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
     },
     { icon: <LogOut className="mr-2" />, label: "Logout", link: "" },
   ];
+
+  const handleLogout = async () => {
+    Cookies.remove("token");
+    window.location.assign("/");
+  };
+  
   return (
     <div className="w-full relative z-10">
       <div className="flex space-x-4 items-center">
@@ -73,8 +76,7 @@ const Profile: React.FC<ProfileProps> = ({ user }) => {
                 <Link
                   href={"#"}
                   onClick={() => {
-                    Cookies.remove("token");
-                    router.push("/");
+                    handleLogout();
                   }}
                   className="flex items-center text-gray-700"
                 >

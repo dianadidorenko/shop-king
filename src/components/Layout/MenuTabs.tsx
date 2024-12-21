@@ -5,7 +5,6 @@ import { axiosInstance } from "@/lib/axiosInstance";
 const MenuTabs = () => {
   const [category, setCategory] = useState([]);
 
-  // Получение категорий
   const fetchCategories = async () => {
     await axiosInstance.get("/category").then((data) => {
       if (data?.data?.status) {
@@ -20,31 +19,29 @@ const MenuTabs = () => {
 
   const [activeTab, setActiveTab] = useState("Men");
 
-  // Маппинг для картинок и названий табов
   const tabImages = {
     Men: "/men-cover.png",
     Women: "/women-cover.png",
     Juniors: "/juniors-cover.png",
   };
 
-  // Общий компонент для вывода контента таба
   const renderTabContent = (tab) => {
     return (
       <div className="flex justify-between space-x-8 p-4">
         <div className="w-1/2">
           <img
-            src={tabImages[tab]} // Выбор изображения в зависимости от активного таба
+            src={tabImages[tab]}
             alt="category"
             className="rounded-lg w-full object-cover h-[300px]"
           />
         </div>
 
         <div className="flex justify-normal space-x-8 w-full">
-          <ul className="flex flex-row flex-wrap justify-start gap-2 w-full">
+          <ul className="flex flex-col gap-2">
             {category
-              .filter((item) => item.category === tab) // Фильтрация по текущей категории
+              .filter((item) => item.category === tab)
               .map((item, index) => (
-                <li key={index} className="border rounded-md p-2 h-[40px]">
+                <li key={index} className="">
                   <Link
                     href={`/products?subcategory=${item?.subcategory}`}
                     className="text-base"

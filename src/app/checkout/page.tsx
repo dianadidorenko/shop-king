@@ -7,6 +7,7 @@ import { AiOutlineLeft, AiOutlineSave } from "react-icons/ai";
 import AddressForm from "@/components/AddressForm";
 import { axiosInstance } from "@/lib/axiosInstance";
 
+
 interface Address {
   fullName: string;
   email: string;
@@ -21,15 +22,18 @@ interface Address {
 
 interface ShippingInfoProps {
   shippingAddress: Address;
+  showBillingAddress: boolean;
+  setShowBillingAddress: (value: boolean) => void;
   billingAddress: Address;
-  onEditAddress: () => void;
-  onAddNewAddress: () => void;
+  onEditAddress: (title: string) => void;
+  onAddNewAddress: (title: string) => void;
   onSaveAndPay: () => void;
   total: number;
   subtotal: number;
   tax: number;
   shippingCharge: number;
   discount: number;
+  items: any[];
 }
 
 const ShippingInfo: React.FC<ShippingInfoProps> = ({
@@ -203,8 +207,8 @@ const ProgressStep: React.FC<{
 const AddressSection: React.FC<{
   title: string;
   address: Address;
-  onEditAddress: () => void;
-  onAddNewAddress: () => void;
+  onEditAddress: (title: string) => void;
+  onAddNewAddress: (title: string) => void;
 }> = ({ title, address, onEditAddress, onAddNewAddress }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow mb-6">
@@ -286,7 +290,7 @@ const CheckoutPage: React.FC = () => {
   const [orderSummary, setOrderSummary] = useState({});
 
   function generateOrderSummary(
-    items,
+    items: any,
     taxRate = 0.3,
     shippingCharge = 10,
     discountRate = 0
@@ -377,6 +381,7 @@ const CheckoutPage: React.FC = () => {
       alert("Order Placed Successfully");
     });
   };
+
 
   return (
     <>

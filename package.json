@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
+    "@stripe/react-stripe-js": "^3.1.1",
+    "@stripe/stripe-js": "^5.4.0",
     "axios": "^1.7.7",
     "date-fns": "^4.1.0",
     "formik": "^2.4.6",
@@ -20,12 +22,15 @@
     "multi-range-slider-react": "^2.0.7",
     "next": "15.0.3",
     "react": "^18.3.1",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "react-icons": "^5.3.0",
     "react-paginate": "^8.2.0",
     "react-slick": "^0.30.2",
     "react-toastify": "^10.0.6",
+    "rsuite": "^5.75.0",
     "slick-carousel": "^1.8.1",
+    "stripe": "^17.5.0",
     "yup": "^1.4.0"
   },
   "devDependencies": {

@@ -11,11 +11,12 @@ const WishlistPage = () => {
   const router = useRouter();
 
   const fetchWishlist = async () => {
-    await axiosInstance.get("/wishlist").then((data) => {
-      if (data?.data?.status) {
-        setWishlist(data.data.data);
-      }
-    });
+    const response = await axiosInstance.get("/wishlist");
+    if (response?.data?.status) {
+      setWishlist(response.data.data.product || []);
+    } else {
+      console.log("Что-то пошло не так");
+    }
   };
 
   useEffect(() => {
@@ -47,7 +48,7 @@ const WishlistPage = () => {
       <div className="flex items-center w-[50%]">
         <h1 className="text-xl xl:text-4xl font-bold mb-0">Wishlist</h1>
         <span className="text-md xl:text-xl ms-2 relative top-[1px]">
-          ({wishlist?.product?.length} Products Found)
+          ({wishlist?.product?.length || 0} Products Found)
         </span>
       </div>
       <div className="w-full flex justify-end">
@@ -59,11 +60,11 @@ const WishlistPage = () => {
         </button>
       </div>
       <div className="mt-5">
-        {wishlist?.product?.length ? (
+        {wishlist?.length ? (
           <ProductCard
-            isWishlisted={true}
+            isWishlisted={wishlist.map((item) => item._id)}
             wishlistClick={removeFromWishlist}
-            data={wishlist?.product}
+            data={wishlist}
           />
         ) : (
           <img

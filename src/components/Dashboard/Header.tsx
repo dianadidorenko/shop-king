@@ -1,8 +1,8 @@
+import { axiosInstance } from "@/lib/axiosInstance";
 import { ChevronDown, ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { HiBars3BottomLeft } from "react-icons/hi2";
-import { TbHttpPost } from "react-icons/tb";
 
 interface DashBoardHeaderProps {
   openSidebar: boolean;
@@ -13,6 +13,20 @@ const Header: React.FC<DashBoardHeaderProps> = ({
   openSidebar,
   setOpenSidebar,
 }) => {
+  const [user, setUser] = useState(null);
+
+  const getUser = async () => {
+    await axiosInstance.get("/user").then((data) => {
+      if (data?.data?.status) {
+        setUser(data.data.user);
+      }
+    });
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
   return (
     <div className="flex px-4 bg-white shadow-md sticky top-0 w-full z-50 items-center justify-between">
       <Link href={"/"} className="flex items-center space-x-3 py-4">
@@ -45,14 +59,22 @@ const Header: React.FC<DashBoardHeaderProps> = ({
         {/* <div className="bg-orange-100 p-2 rounded">
           <TbHttpPost className="text-[#f34d13]"/>
         </div> */}
-        <div className="bg-red-100 cursor-pointer p-2 rounded">
+        <div
+          onClick={() => setOpenSidebar(!openSidebar)}
+          className="bg-red-100 cursor-pointer p-2 rounded"
+        >
           <HiBars3BottomLeft className="text-[#f34d13]" />
         </div>
+
         <div className="flex items-center space-x-2 p-2">
-          <img src="https://placehold.co/600x800" alt="user icon" className="w-8 h-8 rounded-md" />
+          <img
+            src="/admin-photo.jpeg"
+            alt="user icon"
+            className="h-12 w-8 rounded-md"
+          />
           <div className="flex flex-col">
             <span className="text-sm">Hello</span>
-            <span className="text-sm font-bold">John</span>
+            <span className="text-sm font-bold">{user?.name}</span>
           </div>
         </div>
       </div>

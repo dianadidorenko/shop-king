@@ -1,18 +1,21 @@
 "use client";
 
+import { Headset, Heart, Lock, Ship } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+
+import { axiosInstance } from "@/lib/axiosInstance";
 import Carousel from "@/components/Home/Carousel";
 import CategoryCarousel from "@/components/Home/CategoryCarousel";
 import PopularBrands from "@/components/Home/PopularBrands";
 import PromotionCards from "@/components/Home/PromotionCards";
 import ProductCard from "@/components/ProductCard";
-import { axiosInstance } from "@/lib/axiosInstance";
-import { Headset, Heart, Lock, Ship } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { Product } from "@/lib/type";
 
 export default function Home() {
-  const [flashSaleProducts, setFlashSaleProducts] = useState([]);
-  const [latestProducts, setlatestProducts] = useState([]);
+  const [flashSaleProducts, setFlashSaleProducts] = useState<Product[]>([]);
+  const [latestProducts, setlatestProducts] = useState<Product[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
 
   const fetchFlashSales = async () => {
     await axiosInstance.get("/products/flash-sales").then((data) => {
@@ -27,19 +30,33 @@ export default function Home() {
     });
   };
 
-  useEffect(() => {
-    fetchFlashSales();
-  }, []);
-
   const addToWishlist = async (id: string) => {
     await axiosInstance.post("/wishlist", { product: id }).then((data) => {
       if (data?.data?.status) {
         toast.success("Product added to wishlist");
+        fetchWishlist();
       } else {
         toast.error("Product is not added to wishlist");
       }
     });
   };
+
+  const fetchWishlist = async () => {
+    await axiosInstance.get("/wishlist").then((data) => {
+      if (data?.data?.status) {
+        setWishlist(
+          data.data.data.product.map((item: { _id: string }) => item?._id)
+        );
+      } else {
+        console.log("Something went wrong");
+      }
+    });
+  };
+
+  useEffect(() => {
+    fetchFlashSales();
+    fetchWishlist();
+  }, []);
 
   const services = [
     {
@@ -72,7 +89,7 @@ export default function Home() {
       <div className="container px-2 xl:px-4 mt-10 mx-auto">
         <h2 className="text-4xl font-bold mb-4">Latest Products</h2>
         <ProductCard
-          isWishlisted={false}
+          isWishlisted={wishlist}
           wishlistClick={addToWishlist}
           data={latestProducts}
         />
@@ -80,7 +97,7 @@ export default function Home() {
       <div className="container px-2 xl:px-4 mt-10 mx-auto">
         <h2 className="text-4xl font-bold mb-4">Flash Sales</h2>
         <ProductCard
-          isWishlisted={false}
+          isWishlisted={wishlist}
           wishlistClick={addToWishlist}
           data={flashSaleProducts}
         />

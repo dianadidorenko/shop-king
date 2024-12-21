@@ -5,25 +5,15 @@ import { X } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { axiosInstance } from "@/lib/axiosInstance";
+import { AddressFormValues } from "@/lib/type";
 
 interface AddressFormProps {
   onClose: () => void;
   showBillingAddress: boolean;
-  shippingAddress: object;
-  billingAddress: object;
+  shippingAddress: AddressFormValues | null;
+  billingAddress: AddressFormValues | null;
   title: string;
   fetchAddress: () => void;
-}
-
-interface AddressFormValues {
-  fullName: string;
-  email: string;
-  phone: string;
-  country: string;
-  state: string;
-  city: string;
-  zipcode: string;
-  streetAddress: string;
 }
 
 const validationSchema = Yup.object({
@@ -45,49 +35,31 @@ const AddressForm: React.FC<AddressFormProps> = ({
   title,
   fetchAddress,
 }) => {
-  console.log(shippingAddress);
-
   const initialValues: AddressFormValues = {
-    fullName: !showBillingAddress
-      ? title === "Billing Address"
-        ? billingAddress?.fullName
-        : shippingAddress?.fullName
-      : billingAddress?.fullName,
-    email: !showBillingAddress
-      ? title === "Billing Address"
-        ? billingAddress?.email
-        : shippingAddress?.email
-      : billingAddress?.email,
-    phone: !showBillingAddress
-      ? title === "Billing Address"
-        ? billingAddress?.phone
-        : shippingAddress?.phone
-      : billingAddress?.phone,
-    country: !showBillingAddress
-      ? title === "Billing Address"
-        ? billingAddress?.country
-        : shippingAddress?.country
-      : billingAddress?.country,
-    state: !showBillingAddress
-      ? title === "Billing Address"
-        ? billingAddress?.state
-        : shippingAddress?.state
-      : billingAddress?.state,
-    city: !showBillingAddress
-      ? title === "Billing Address"
-        ? billingAddress?.city
-        : shippingAddress?.city
-      : billingAddress?.city,
-    zipcode: !showBillingAddress
-      ? title === "Billing Address"
-        ? billingAddress?.zipcode
-        : shippingAddress?.zipcode
-      : billingAddress?.zipcode,
-    streetAddress: !showBillingAddress
-      ? title === "Billing Address"
-        ? billingAddress?.streetAddress
-        : shippingAddress?.streetAddress
-      : billingAddress?.streetAddress,
+    fullName: showBillingAddress
+      ? billingAddress?.fullName || ""
+      : shippingAddress?.fullName || "",
+    email: showBillingAddress
+      ? billingAddress?.email || ""
+      : shippingAddress?.email || "",
+    phone: showBillingAddress
+      ? billingAddress?.phone || ""
+      : shippingAddress?.phone || "",
+    country: showBillingAddress
+      ? billingAddress?.country || ""
+      : shippingAddress?.country || "",
+    state: showBillingAddress
+      ? billingAddress?.state || ""
+      : shippingAddress?.state || "",
+    city: showBillingAddress
+      ? billingAddress?.city || ""
+      : shippingAddress?.city || "",
+    zipcode: showBillingAddress
+      ? billingAddress?.zipcode || ""
+      : shippingAddress?.zipcode || "",
+    streetAddress: showBillingAddress
+      ? billingAddress?.streetAddress || ""
+      : shippingAddress?.streetAddress || "",
   };
 
   const handleSubmit = (values: AddressFormValues) => {

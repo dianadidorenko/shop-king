@@ -13,7 +13,7 @@ const ProductFilter = ({ onFilterChange, filters }) => {
   const [maxPrice, setMaxPrice] = useState<number>(10000);
 
   useEffect(() => {
-    if (Object.keys(filters).length === 0) {
+    if (filters && Object.keys(filters).length === 0) {
       setMinPrice(0);
       setMaxPrice(0);
       setSelectedBrand("");

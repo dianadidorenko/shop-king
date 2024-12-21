@@ -6,6 +6,7 @@ import * as Yup from "yup";
 import { Ellipsis, X } from "lucide-react";
 import { axiosInstance } from "@/lib/axiosInstance";
 import { toast } from "react-toastify";
+import { AddressFormValues } from "@/lib/type";
 
 const AddressSchema = Yup.object().shape({
   fullName: Yup.string().required("Full name is required"),
@@ -15,6 +16,7 @@ const AddressSchema = Yup.object().shape({
 });
 
 interface AddressFormProps {
+  data: Partial<AddressFormValues>;
   onClose: () => void;
 }
 
@@ -195,8 +197,8 @@ const AddressForm: React.FC<AddressFormProps> = ({ data, onClose }) => {
 };
 
 const AddressList: React.FC = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [data, setData] = useState({});
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [data, setData] = useState<Partial<AddressFormValues>>({});
 
   const toggleModal = () => {
     setShowModal(!showModal);
@@ -209,11 +211,10 @@ const AddressList: React.FC = () => {
       }
     });
   };
+
   useEffect(() => {
     getAddress();
   }, []);
-
-  console.log(data);
 
   return (
     <div className="p-8">

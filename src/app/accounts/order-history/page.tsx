@@ -3,9 +3,10 @@
 import { Ellipsis } from "lucide-react";
 import React, { ReactNode, useEffect, useState } from "react";
 import { format } from "date-fns";
+import Link from "next/link";
 
 import { axiosInstance } from "@/lib/axiosInstance";
-import Link from "next/link";
+import { OrderItem } from "@/lib/type";
 
 interface DropdownProps {
   children: ReactNode;
@@ -42,7 +43,7 @@ const Dropdown: React.FC<DropdownProps> = ({ children }) => {
 };
 
 const OrderHistoryPage = () => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<OrderItem[]>([]);
 
   const getOrders = async () => {
     await axiosInstance.get("/orders").then((data) => {
@@ -67,7 +68,6 @@ const OrderHistoryPage = () => {
       });
   };
 
-  console.log(data);
   return (
     <main className="w-full px-4 pb-6">
       <h1 className="text-2xl font-semibold text-orange-500 mb-6">
@@ -88,7 +88,7 @@ const OrderHistoryPage = () => {
           <tbody>
             {data?.map((item, index) => {
               return (
-                <tr key={item?.orderId} className="border-t">
+                <tr key={index} className="border-t">
                   <td className="py-4">
                     {item?.orderId}
                     <br />
@@ -119,7 +119,7 @@ const OrderHistoryPage = () => {
                   <td className="py-4">
                     <Dropdown>
                       <Link
-                        href={`/account/order-history/${item?._id}`}
+                        href={`/accounts/order-history/${item?._id}`}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 duration-300"
                       >
                         View Details
@@ -141,7 +141,9 @@ const OrderHistoryPage = () => {
             })}
           </tbody>
         </table>
-        <div className="mt-4 text-gray-500">Showing 1 to 3 of 3 results</div>
+        <div className="mt-4 text-gray-500">
+          Showing 1 to {data?.length} of {data?.length} results
+        </div>
       </div>
     </main>
   );

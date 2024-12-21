@@ -50,7 +50,7 @@ const LoginPage: React.FC = () => {
         })
         .catch((error) => {
           toast.error("Login failed");
-          console.error(error);
+          console.log(error);
         });
     },
   });

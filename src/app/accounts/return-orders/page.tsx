@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { Ellipsis } from "lucide-react";
@@ -10,7 +8,7 @@ interface DropdownProps {
 }
 
 const Dropdown: React.FC<DropdownProps> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
     <div className="relative inline-block text-left">

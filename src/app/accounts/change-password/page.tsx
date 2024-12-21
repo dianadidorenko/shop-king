@@ -33,8 +33,6 @@ const ChangePasswordPage: React.FC = () => {
           onSubmit={(values, { setSubmitting, resetForm }) => {
             setSubmitting(true);
             axiosInstance.put("/user/change-password", values).then((data) => {
-              console.log(data.data);
-
               if (data?.data?.status) {
                 alert("Password changed successfully");
                 resetForm();

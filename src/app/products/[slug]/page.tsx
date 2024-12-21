@@ -19,6 +19,7 @@ const ProductPage: React.FC = () => {
   const [product, setProduct] = useState({});
   const [products, setProducts] = useState([]);
   const [quantity, setQuantity] = useState<number>(1);
+  const [wishlist, setWishlist] = useState<string[]>([]);
 
   const [selectedImage, setSelectedImage] =
     useState<string>("goods/1-cover.png");
@@ -52,9 +53,22 @@ const ProductPage: React.FC = () => {
     }
   };
 
+  const fetchWishlist = async () => {
+    await axiosInstance.get("/wishlist").then((data) => {
+      if (data?.data?.status) {
+        setWishlist(
+          data.data.data.product.map((item: { _id: string }) => item?._id)
+        );
+      } else {
+        console.log("Something went wrong");
+      }
+    });
+  };
+
   useEffect(() => {
     fetchProduct();
     fetchProducts();
+    fetchWishlist();
   }, []);
 
   // Slider settings
@@ -236,10 +250,17 @@ const ProductPage: React.FC = () => {
               Add To Cart
             </button>
             <button
-              onClick={addToWishList}
+              onClick={() => {
+                addToWishList();
+                fetchWishlist();
+              }}
               className="flex items-center px-4 py-2 border rounded-3xl"
             >
-              <Heart className="mr-2" />
+              <Heart
+                className="mr-2"
+                color={wishlist.includes(product._id) ? "#ff4800" : "#d1d5db"}
+                fill={wishlist.includes(product._id) ? "#ff4800" : "#d1d5db"}
+              />
               Favourite
             </button>
           </div>
@@ -253,7 +274,7 @@ const ProductPage: React.FC = () => {
       <div className="my-5">
         <h2 className="text-4xl font-bold">Related Products</h2>
       </div>
-      <ProductCard isWishlisted={false} data={products} />
+      <ProductCard isWishlisted={wishlist} data={products} />
     </div>
   );
 };

@@ -1,13 +1,8 @@
 "use client";
 
 import { axiosInstance } from "@/lib/axiosInstance";
-import {
-  CheckCircleIcon,
-  Ellipsis,
-  ShoppingBag,
-  Undo,
-  Wallet,
-} from "lucide-react";
+import { OrderItem } from "@/lib/type";
+import { CheckCircleIcon, Ellipsis, ShoppingBag, Undo } from "lucide-react";
 import React, { ReactNode, useEffect, useState } from "react";
 
 interface DropdownProps {
@@ -15,7 +10,7 @@ interface DropdownProps {
 }
 
 const Dropdown: React.FC<DropdownProps> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
     <div className="relative inline-block text-left">
@@ -45,7 +40,7 @@ const Dropdown: React.FC<DropdownProps> = ({ children }) => {
 };
 
 const OverviewPage = () => {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
 
   const fetchOrders = async () => {
     await axiosInstance.get("/orders").then((data) => {
@@ -59,7 +54,6 @@ const OverviewPage = () => {
     fetchOrders();
   }, []);
 
-  console.log(orders);
   return (
     <main className="w-full px-4 pb-6">
       <div className="container mx-auto p-4 mb-10">

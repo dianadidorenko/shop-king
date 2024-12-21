@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import {
   FaDollarSign,
   FaBox,
@@ -13,10 +14,16 @@ import {
   FaTimesCircle,
   FaUndo,
 } from "react-icons/fa";
+import { DateRangePicker } from "rsuite";
+import "rsuite/dist/rsuite.min.css";
+
+import ProductCard from "@/components/ProductCard";
 import StatCard from "@/components/Dashboard/Components/StatCard";
 import OrderStatCard from "@/components/Dashboard/Components/OrderStatCard";
-import React, { useEffect, useState } from "react";
-import ProductCard from "@/components/ProductCard";
+import { axiosInstance } from "@/lib/axiosInstance";
+import SalesChart from "@/components/Dashboard/Components/SalesChart";
+import DeliveryStatus from "@/components/Dashboard/Components/OrdersChart";
+import CustomerStats from "@/components/Dashboard/Components/CustomerStats";
 
 interface DashboardData {
   totalEarnings: string;
@@ -37,63 +44,33 @@ interface DashboardData {
 
 const DashboardPage: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [dbMetrics, setDbMetrics] = useState(null);
+  const [orderStats, setOrderStats] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [restData, setRestData] = useState(null);
 
-  const products = [
-    {
-      title: "DailyRun Leggings",
-      price: 40.0,
-      originalPrice: 80.0,
-      image: "/goods/2-cover.png",
-    },
-    {
-      title: "Denim Jacket",
-      price: 120.0,
-      originalPrice: 150.0,
-      image: "/goods/3-cover.png",
-    },
-    {
-      title: "Dri-Fit Crop Top",
-      price: 96.0,
-      originalPrice: 120.0,
-      image: "/goods/4-cover.png",
-    },
-    {
-      title: "Dri-Fit One",
-      price: 80.0,
-      originalPrice: 100.0,
-      image: "/goods/5-cover.png",
-    },
-    {
-      title: "Dri-Fit Pro",
-      price: 96.0,
-      originalPrice: 120.0,
-      image: "/goods/6-cover.png",
-    },
-    {
-      title: "Dri-Fit Striker",
-      price: 55.0,
-      originalPrice: 110.0,
-      image: "/goods/7-cover.png",
-    },
-    {
-      title: "Essential Hoodie",
-      price: 80.0,
-      originalPrice: 160.0,
-      image: "/goods/8-cover.png",
-    },
-    {
-      title: "Everyday Plus",
-      price: 64.0,
-      originalPrice: 80.0,
-      image: "/goods/9-cover.png",
-    },
-    {
-      title: "Denim Jacket",
-      price: 120.0,
-      originalPrice: 150.0,
-      image: "/goods/1-cover.png",
-    },
-  ];
+  const fetchDbMetrics = async () => {
+    await axiosInstance.get("/dashboard/metrics").then((data) => {
+      if (data?.data?.status) {
+        setDbMetrics(data.data.data);
+      }
+    });
+    await axiosInstance.get("/dashboard/order-stats").then((data) => {
+      if (data?.data?.status) {
+        setOrderStats(data.data.data);
+      }
+    });
+    await axiosInstance.get("/dashboard/summary").then((data) => {
+      if (data?.data?.status) {
+        setRestData(data.data.data);
+      }
+    });
+    await axiosInstance.get("/products").then((data) => {
+      if (data?.data?.status) {
+        setProducts(data.data.data);
+      }
+    });
+  };
 
   useEffect(() => {
     const fetchData = () => {
@@ -119,8 +96,12 @@ const DashboardPage: React.FC = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    fetchDbMetrics();
+  }, []);
+
   return (
-    <div>
+    <div className="bg-gray-100 p-2">
       <h1 className="text-3xl font-bold text-orange-500">Good Morning!</h1>
       <p className="text-xl text-black">Admin</p>
       <div className="mt-4">
@@ -131,7 +112,7 @@ const DashboardPage: React.FC = () => {
               icon={FaDollarSign}
               iconColor="text-pink-500"
               title="Total Earnings"
-              value={data?.totalEarnings}
+              value={`$${dbMetrics?.totalEarning}` || 0}
               bgColor={"bg-pink-500"}
               textColor="text-white"
             />
@@ -139,7 +120,7 @@ const DashboardPage: React.FC = () => {
               icon={FaBox}
               iconColor="text-purple-500"
               title="Total Orders"
-              value={data?.totalOrders}
+              value={dbMetrics?.totalOrders || 0}
               bgColor={"bg-orange-500"}
               textColor="text-white"
             />
@@ -147,7 +128,7 @@ const DashboardPage: React.FC = () => {
               icon={FaUsers}
               iconColor="text-blue-500"
               title="Total Customers"
-              value={data?.totalCustomers}
+              value={dbMetrics?.totalCustomers || 0}
               bgColor={"bg-purple-500"}
               textColor="text-white"
             />
@@ -155,7 +136,7 @@ const DashboardPage: React.FC = () => {
               icon={FaClipboardList}
               iconColor="text-blue-500"
               title="Total Products"
-              value={data?.totalProducts}
+              value={dbMetrics?.totalProducts || 0}
               bgColor={"bg-blue-500"}
               textColor="text-white"
             />
@@ -167,73 +148,133 @@ const DashboardPage: React.FC = () => {
               icon={FaBox}
               iconColor="text-red-500"
               title="Total Orders"
-              value={data?.orderStats.totalOrders}
+              value={dbMetrics?.totalOrders || 0}
             />
             <OrderStatCard
               icon={FaClock}
               iconColor="text-yellow-500"
               title="Pending"
-              value={data?.orderStats.pending}
+              value={
+                orderStats?.find((item) => item?._id === "Pending")?.count || 0
+              }
             />
             <OrderStatCard
               icon={FaCheckCircle}
               iconColor="text-green-500"
               title="Confirmed"
-              value={data?.orderStats.confirmed}
+              value={
+                orderStats?.find((item) => item?._id === "Accepted")?.count || 0
+              }
             />
             <OrderStatCard
               icon={FaTruck}
               iconColor="text-blue-500"
               title="Ongoing"
-              value={data?.orderStats.ongoing}
+              value={
+                orderStats?.find((item) => item?._id === "On the Way")?.count ||
+                0
+              }
             />
             <OrderStatCard
               icon={FaBoxOpen}
               iconColor="text-purple-500"
               title="Delivered"
-              value={data?.orderStats.delivered}
+              value={
+                orderStats?.find((item) => item?._id === "Delivered")?.count ||
+                0
+              }
             />
             <OrderStatCard
               icon={FaTimesCircle}
               iconColor="text-pink-500"
               title="Cancelled"
-              value={data?.orderStats.canceled}
+              value={
+                orderStats?.find((item) => item?._id === "Cancelled")?.count ||
+                0
+              }
             />
             <OrderStatCard
               icon={FaUndo}
               iconColor="text-red-500"
               title="Returned"
-              value={data?.orderStats.returned}
+              value={
+                orderStats?.find((item) => item?._id === "Returned")?.count || 0
+              }
             />
             <OrderStatCard
               icon={FaBan}
               iconColor="text-orange-500"
               title="Rejected"
-              value={data?.orderStats.rejected}
+              value={
+                orderStats?.find((item) => item?._id === "Rejected")?.count || 0
+              }
             />
           </div>
         </div>
       </div>
-      {/* <div className="mt-4 flex justify-between gap-4">
-        <div className="w-[50%] bg-white rounded-md shadow ">
+
+      <div className="mt-4 flex justify-between gap-4">
+        <div className="w-[50%] bg-white rounded-md shadow">
           <div className="shadow-md p-4 flex justify-between items-center">
             <h3 className="font-bold">Sales Summary</h3>
           </div>
-          <div className="mt-3 flex items-center justify-between p-4"></div>
+          <div className="p-4">
+            <SalesChart data={restData?.salesSummary} />
+            {/* <DateRangePicker onChange={(e: any) => console.log(e)} /> */}
+          </div>
         </div>
-        <div className="w-[50%] bg-white rounded-md shadow ">
+        <div className="w-[50%] bg-white rounded-md shadow">
           <div className="shadow-md p-4 flex justify-between items-center">
             <h3 className="font-bold">Order Summary</h3>
           </div>
-          <div className="mt-3 flex items-center justify-between p-4"></div>
+          <div className="mt-3 h-full flex items-center justify-center">
+            <DeliveryStatus data={restData?.orderSummary} />
+          </div>
         </div>
-      </div> */}
+      </div>
+
+      <div className="mt-4 flex justify-between gap-4">
+        <div className="w-[50%] bg-white rounded-md shadow">
+          <div className="shadow-md p-4 flex justify-between items-center">
+            <h3 className="font-bold">Customer Stats</h3>
+          </div>
+          <div className="mt-4 flex gap-2">
+            <CustomerStats data={restData?.customerActivity} />
+          </div>
+        </div>
+        <div className="w-[50%] bg-white rounded-md shadow">
+          <div className="shadow-md p-4 flex justify-between items-center">
+            <h3 className="font-bold">Top Customers</h3>
+          </div>
+          <div className="mt-4 flex gap-2 p-4">
+            {restData?.topCustomers?.map((item, index) => {
+              return (
+                <div
+                  key={index}
+                  className="flex items-center justify-center flex-col gap-2"
+                >
+                  <img
+                    src="https://placehold.co/600x800"
+                    alt="profile img"
+                    className="w-20 h-20"
+                  />
+                  <p className="font-semibold">{item?.fullName}</p>
+                  <p className="text-white p-4 bg-blue-500 rounded-b-xl flex items-center">
+                    {item?.totalOrders} Orders
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
       <div className="mt-4 bg-white">
         <div className="shadow-md p-4 flex justify-between items-center">
           <h3 className="font-bold">Top Products</h3>
         </div>
         <div className="mt-4">
-          <ProductCard isWishlisted={false} data={products} />
+          <ProductCard data={products} />
         </div>
       </div>
     </div>
